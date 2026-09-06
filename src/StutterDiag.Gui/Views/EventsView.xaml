@@ -1,0 +1,62 @@
+<UserControl x:Class="StutterDiag.Gui.Views.EventsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="900">
+
+    <DockPanel Margin="20">
+        <TextBlock DockPanel.Dock="Top" Text="Events" Style="{StaticResource H1}" />
+
+        <Grid DockPanel.Dock="Top" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="140" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="Category" VerticalAlignment="Center"
+                       Style="{StaticResource Muted}" Margin="0,0,6,0" />
+            <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}" SelectedItem="{Binding CategoryFilter}" />
+
+            <TextBlock Grid.Column="2" Text="Severity" VerticalAlignment="Center"
+                       Style="{StaticResource Muted}" Margin="12,0,6,0" />
+            <ComboBox Grid.Column="3" ItemsSource="{Binding Severities}" SelectedItem="{Binding SeverityFilter}" />
+
+            <TextBlock Grid.Column="4" Text="Search" VerticalAlignment="Center"
+                       Style="{StaticResource Muted}" Margin="12,0,6,0" />
+            <TextBox Grid.Column="5" Text="{Binding TextFilter, UpdateSourceTrigger=PropertyChanged, Delay=200}" />
+
+            <TextBlock Grid.Column="6" VerticalAlignment="Center" Margin="12,0,10,0"
+                       Style="{StaticResource Muted}">
+                <Run Text="{Binding VisibleCount, Mode=OneWay}" /><Run Text=" shown" />
+            </TextBlock>
+            <Button Grid.Column="7" Content="Refresh" Command="{Binding RefreshCommand}" />
+        </Grid>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding ServiceHint}" Style="{StaticResource Muted}"
+                   Margin="0,0,0,8" TextWrapping="Wrap"
+                   Visibility="{Binding ServiceHint, Converter={StaticResource NullOrEmptyToVis}}" />
+
+        <DataGrid ItemsSource="{Binding EventsView}" AutoGenerateColumns="False" IsReadOnly="True"
+                  HeadersVisibility="Column" SelectionMode="Single"
+                  EnableRowVirtualization="True"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  VirtualizingPanel.ScrollUnit="Pixel">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Time (UTC)" Binding="{Binding TimestampUtcIso}" Width="180" />
+                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="140" />
+                <DataGridTextColumn Header="Severity" Binding="{Binding Severity}" Width="90" />
+                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="160" />
+                <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

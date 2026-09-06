@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>StutterDiag.Monitors.Tests</RootNamespace>
+    <!-- Must match the InternalsVisibleTo in StutterDiag.Monitors.csproj so the tests can
+         reach HeartbeatStutterDetector.Measure(...). -->
+    <AssemblyName>StutterDiag.Monitors.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\StutterDiag.Core\StutterDiag.Core.csproj" />
+    <ProjectReference Include="..\..\src\StutterDiag.Monitors\StutterDiag.Monitors.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+</Project>

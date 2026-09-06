@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>StutterDiag.Core</RootNamespace>
+    <AssemblyName>StutterDiag.Core</AssemblyName>
+    <!-- Core stays cross-platform so it unit-tests on CI without Windows.
+         Windows-only calls (QPC P/Invoke) are guarded with OperatingSystem.IsWindows(). -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+  </ItemGroup>
+
+</Project>

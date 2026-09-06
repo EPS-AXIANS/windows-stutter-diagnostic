@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    StutterDiag.Service — the Windows Service host (ARCHITECTURE.md §3).
+    Runs with or without a GUI attached, on a least-privilege service account.
+    app.manifest requests asInvoker: the SCM starts the process with the service
+    account's token; the install/uninstall verbs self-check for elevation.
+    PackageReference versions come from Directory.Packages.props (CPM) — no Version= here.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>StutterDiag.Service</RootNamespace>
+    <AssemblyName>StutterDiag.Service</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StutterDiag.Core\StutterDiag.Core.csproj" />
+    <ProjectReference Include="..\StutterDiag.Ipc\StutterDiag.Ipc.csproj" />
+    <ProjectReference Include="..\StutterDiag.Etw\StutterDiag.Etw.csproj" />
+    <ProjectReference Include="..\StutterDiag.Monitors\StutterDiag.Monitors.csproj" />
+    <ProjectReference Include="..\StutterDiag.Reporting\StutterDiag.Reporting.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Extensions.Hosting" />
+    <PackageReference Include="Serilog.Settings.Configuration" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <!-- TraceEvent types are used directly by Ipc/EtwUserFeedAdapter.cs. It also flows
+         transitively from StutterDiag.Etw, but the explicit reference keeps intent clear. -->
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

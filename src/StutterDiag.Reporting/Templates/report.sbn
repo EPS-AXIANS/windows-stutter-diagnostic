@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>StutterDiag report{{ if model.Primary.Session.Label != "" }} — {{ model.Primary.Session.Label | html.escape }}{{ end }}</title>
+<style>
+{{ css }}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="report">
+  <h1>Windows Stutter Diagnostic — report</h1>
+  <div class="meta">
+    Generated {{ model.Meta.GeneratedUtc }} UTC &middot; tool {{ model.Meta.ToolVersion }} &middot;
+    format {{ model.Meta.Format }}{{ if model.Meta.CompareMode }} &middot; A/B comparison{{ end }}
+  </div>
+  <div class="disclaimer">Correlation does not prove causation.</div>
+</header>
+
+{{ func num_or_na(v, digits) }}{{ if v == null }}Unavailable{{ else }}{{ math.round v digits }}{{ end }}{{ end }}
+
+{{ func render_session(sr, heading) }}
+<h2>{{ heading }}</h2>
+
+<div class="panel">
+  <dl class="kv">
+    <dt>Label</dt><dd>{{ sr.Session.Label | html.escape }}</dd>
+    <dt>Started (UTC)</dt><dd>{{ sr.Session.StartedUtc }}</dd>
+    <dt>Ended (UTC)</dt><dd>{{ if sr.Session.EndedUtc == null }}(open){{ else }}{{ sr.Session.EndedUtc }}{{ end }}</dd>
+    <dt>Mode</dt><dd>{{ sr.Session.Mode | html.escape }}</dd>
+    <dt>TPM (inferred)</dt><dd>{{ sr.Session.TpmTypeInferred }} — {{ sr.Session.TpmBasis | html.escape }}</dd>
+  </dl>
+</div>
+
+<h3>Summary</h3>
+<div class="grid">
+  <div class="stat"><div class="k">Monitoring duration</div><div class="v">{{ sr.Summary.MonitoringDuration }}</div></div>
+  <div class="stat"><div class="k">Stutters detected</div><div class="v">{{ sr.Summary.StuttersDetected }}</div></div>
+  <div class="stat"><div class="k">Major or worse</div><div class="v">{{ sr.Summary.MajorStutters }}</div></div>
+  <div class="stat"><div class="k">TPM / TBS events</div><div class="v">{{ sr.Summary.TpmRelatedEvents }}</div></div>
+  <div class="stat"><div class="k">WHEA events</div><div class="v">{{ sr.Summary.WheaEvents }}</div></div>
+  <div class="stat"><div class="k">DPC spikes</div><div class="v">{{ sr.Summary.DpcSpikes }}</div></div>
+  <div class="stat"><div class="k">Driver anomalies</div><div class="v">{{ sr.Summary.DriverAnomalies }}</div></div>
+  <div class="stat"><div class="k">Stutters / hour</div><div class="v">{{ math.round sr.Counts.StuttersPerHour 2 }}</div></div>
+</div>
+
+<h3>Correlation ranking</h3>
+<p class="muted">Signals ordered by temporal-proximity score, then by how many stutter windows they appeared in. This is co-occurrence, not mechanism.</p>
+{{ if (array.size sr.CorrelationRanking) == 0 }}
+<p class="muted">No signals co-occurred with any stutter window in this session.</p>
+{{ else }}
+<ol class="ranking">
+{{ for r in sr.CorrelationRanking }}
+  <li>{{ r.Rank }}. {{ r.DisplayName | html.escape }} &mdash; Correlated with {{ r.CorrelatedStutters }}/{{ r.TotalStutters }} stutters <span class="badge {{ r.ScoreClass }}">{{ r.ScoreLabel }}</span> <span class="muted">(base rate {{ math.round r.BaseRatePercent 0 }}%{{ if r.BaseRatePercent > 0 }}, lift x{{ math.round r.Lift 1 }}{{ end }})</span></li>
+{{ end }}
+</ol>
+{{ end }}
+
+<h3>Per-stutter detail</h3>
+{{ if (array.size sr.Stutters) == 0 }}
+<p class="muted">No stutters were recorded in this session.</p>
+{{ end }}
+{{ for s in sr.Stutters }}
+<div class="panel stutter sev-{{ s.Severity }}" id="stutter-{{ s.Id }}" data-qpc="{{ s.TimestampQpc }}">
+  <h3 style="margin-top:0">Stutter #{{ s.Index }} &middot; {{ s.Severity }}{{ if s.UserMarked }} &middot; user-marked{{ end }}</h3>
+  <dl class="kv">
+    <dt>Timestamp</dt><dd class="nowrap">{{ s.TimestampUtc }} UTC <span class="muted">(qpc {{ s.TimestampQpc }})</span></dd>
+    <dt>Duration</dt><dd>{{ math.round s.DurationMs 1 }} ms</dd>
+    <dt>Detector</dt><dd>{{ s.Detector }} ({{ s.Confidence }} confidence){{ if (array.size s.CorroboratedBy) > 0 }}, corroborated by {{ s.CorroboratedBy | array.join ", " }}{{ end }}</dd>
+    <dt>TPM events</dt><dd>{{ s.TpmEventCount }}</dd>
+    <dt>CPU avg / peak</dt><dd>{{ num_or_na s.CpuAvgPct 1 }} / {{ num_or_na s.CpuPeakPct 1 }} %</dd>
+    <dt>GPU avg</dt><dd>{{ num_or_na s.GpuAvgPct 1 }} %</dd>
+    <dt>Disk latency spike</dt><dd>{{ if s.DiskLatencySpikeMs == null }}none in window{{ else }}{{ math.round s.DiskLatencySpikeMs 1 }} ms{{ end }}</dd>
+    <dt>DPC peak</dt><dd>{{ if s.DpcPeakMs == null }}none in window{{ else }}{{ math.round s.DpcPeakMs 1 }} ms{{ if s.DpcPeakDriver }} ({{ s.DpcPeakDriver | html.escape }}){{ end }}{{ end }}</dd>
+    <dt>WHEA</dt><dd>{{ if s.Whea }}yes{{ else }}no{{ end }}</dd>
+    <dt>Kernel-Power</dt><dd>{{ if s.KernelPower }}yes{{ else }}no{{ end }}</dd>
+    <dt>Top processes</dt><dd>
+      {{ if (array.size s.TopProcesses) == 0 }}Unavailable{{ else }}
+      {{ for p in s.TopProcesses }}{{ p.Name | html.escape }} ({{ math.round p.CpuPercent 1 }}% cpu){{ if !for.last }}, {{ end }}{{ end }}
+      {{ end }}
+    </dd>
+  </dl>
+  <div><strong>Possible correlations</strong>
+    {{ if (array.size s.PossibleCorrelations) == 0 }}<span class="muted"> — none within the window.</span>{{ else }}
+    <ul>
+    {{ for c in s.PossibleCorrelations }}
+      <li><span class="badge {{ c.ScoreClass }}">{{ c.Label }}</span> {{ c.DisplayName | html.escape }} <span class="muted">&mdash; {{ c.Detail | html.escape }} (proximity {{ math.round c.ProximityMs 0 }} ms)</span></li>
+    {{ end }}
+    </ul>
+    {{ end }}
+  </div>
+</div>
+{{ end }}
+
+<h3>Automatic diagnostic</h3>
+<p class="muted">Every line below is framed as observation / hypothesis / not-proven. The tool measures timing coincidence only.</p>
+<div class="diag"><pre>Correlation does not prove causation.
+{{ for f in sr.Findings }}
+{{ if f.CorrelatedStutters == 0 }}
+NO EVIDENCE: {{ f.SignalType }} — {{ f.Observation }}
+{{ else }}
+OBSERVATION: {{ f.Observation }}
+HYPOTHESIS: {{ f.Hypothesis }}
+NOT PROVEN: {{ f.NotProven }}
+BASE RATE: {{ math.round f.BaseRatePercent 0 }}% of random non-stutter windows{{ if f.BaseRatePercent > 0 }} (lift x{{ math.round f.Lift 1 }}){{ end }}
+{{ end }}
+{{ end }}
+</pre></div>
+
+<h3>WHEA records</h3>
+{{ if (array.size sr.Whea) == 0 }}
+<p class="muted">No WHEA records in this session.</p>
+{{ else }}
+<table>
+  <thead><tr><th>Time (UTC)</th><th>Source</th><th>Severity</th><th>Description</th></tr></thead>
+  <tbody>
+  {{ for wr in sr.Whea }}
+    <tr><td class="nowrap">{{ wr.Utc }}</td><td>{{ wr.ErrorSource | html.escape }}</td><td>{{ wr.Severity | html.escape }}</td><td>{{ wr.Description | html.escape }}</td></tr>
+  {{ end }}
+  </tbody>
+</table>
+{{ end }}
+
+<h3>Monitor health &amp; lost events</h3>
+<p>Estimated lost events: {{ sr.Health.LostEventEstimate }}{{ if sr.Health.Note }} <span class="muted">({{ sr.Health.Note | html.escape }})</span>{{ end }}</p>
+{{ if (array.size sr.Health.Monitors) > 0 }}
+<table>
+  <thead><tr><th>Monitor</th><th>Status</th><th>Note</th></tr></thead>
+  <tbody>
+  {{ for m in sr.Health.Monitors }}
+    <tr><td>{{ m.Monitor | html.escape }}</td><td>{{ m.Status | html.escape }}</td><td>{{ if m.Note }}{{ m.Note | html.escape }}{{ end }}</td></tr>
+  {{ end }}
+  </tbody>
+</table>
+{{ end }}
+
+<h3>System</h3>
+{{ if sr.SystemView == null }}
+<p class="muted">No system information was stored for this session.</p>
+{{ else }}
+<div class="panel">
+  <dl class="kv">
+  {{ for nv in sr.SystemView.Facts }}<dt>{{ nv.Name | html.escape }}</dt><dd>{{ nv.Value | html.escape }}</dd>{{ end }}
+  </dl>
+  <h4>TPM</h4>
+  <dl class="kv">
+  {{ for nv in sr.SystemView.Tpm }}<dt>{{ nv.Name | html.escape }}</dt><dd>{{ nv.Value | html.escape }}</dd>{{ end }}
+  </dl>
+</div>
+{{ end }}
+
+{{ if (array.size sr.Drivers) > 0 }}
+<h3>Drivers ({{ array.size sr.Drivers }})</h3>
+<table>
+  <thead><tr><th>Name</th><th>Version</th><th>Date</th><th>Vendor</th><th>Class</th></tr></thead>
+  <tbody>
+  {{ for d in sr.Drivers }}
+    <tr><td>{{ d.Name | html.escape }}</td><td>{{ if d.Version }}{{ d.Version | html.escape }}{{ end }}</td><td class="nowrap">{{ if d.Date }}{{ d.Date }}{{ end }}</td><td>{{ if d.Vendor }}{{ d.Vendor | html.escape }}{{ end }}</td><td>{{ if d.DeviceClass }}{{ d.DeviceClass | html.escape }}{{ end }}</td></tr>
+  {{ end }}
+  </tbody>
+</table>
+{{ end }}
+{{ end }}
+
+{{ render_session model.Primary "Session report" }}
+
+{{ if model.Secondary != null }}
+{{ render_session model.Secondary "Comparison session" }}
+{{ end }}
+
+{{ if model.Comparison != null }}
+<h2>A / B comparison</h2>
+<p class="disclaimer">{{ comparer_note }}</p>
+<table>
+  <thead><tr><th>Metric</th><th>{{ model.Comparison.A.Label | html.escape }} (A)</th><th>{{ model.Comparison.B.Label | html.escape }} (B)</th><th>Delta (B vs A)</th></tr></thead>
+  <tbody>
+  {{ for row in model.Comparison.Rows }}
+    <tr><td>{{ row.Metric | html.escape }}</td><td>{{ row.ValueA | html.escape }}</td><td>{{ row.ValueB | html.escape }}</td><td>{{ row.Delta | html.escape }}</td></tr>
+  {{ end }}
+  </tbody>
+</table>
+{{ end }}
+
+<h2>Timeline</h2>
+<p class="muted">Mouse-wheel to zoom, drag to pan. Jump between stutters with the buttons.</p>
+<div class="timeline-controls">
+  {{ if model.Meta.CompareMode }}
+  <select id="sd-timeline-session">
+    <option>{{ model.Primary.Session.Label | html.escape }} (A)</option>
+    {{ if model.Secondary != null }}<option>{{ model.Secondary.Session.Label | html.escape }} (B)</option>{{ end }}
+  </select>
+  {{ end }}
+  <button id="sd-timeline-prev" type="button">&larr; Prev stutter</button>
+  <button id="sd-timeline-next" type="button">Next stutter &rarr;</button>
+  <button id="sd-timeline-reset" type="button">Reset</button>
+  <span class="hint">canvas-based, no external libraries</span>
+</div>
+<canvas id="sd-timeline" width="1040" height="260"></canvas>
+<div id="sd-timeline-readout"></div>
+
+<footer class="report">
+  <p>StutterDiag {{ model.Meta.ToolVersion }} &middot; local diagnostic, no telemetry.
+  {{ if (array.size model.Meta.RedactionNotes) > 0 }}Redaction applied: {{ for n in model.Meta.RedactionNotes }}{{ n | html.escape }}{{ if !for.last }}; {{ end }}{{ end }}.{{ end }}</p>
+  <p><strong>Correlation does not prove causation.</strong> This report records temporal coincidence between stutters and other Windows activity. It does not identify a mechanism and must not be read as assigning blame to the TPM, a driver, or any other component.</p>
+</footer>
+
+</div>
+<script>
+window.SD_TIMELINE = {{ timeline_data_json }};
+</script>
+<script>
+{{ timeline_js }}
+</script>
+</body>
+</html>

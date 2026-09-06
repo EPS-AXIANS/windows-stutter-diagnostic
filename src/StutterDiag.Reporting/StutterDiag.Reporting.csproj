@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>StutterDiag.Reporting</RootNamespace>
+    <AssemblyName>StutterDiag.Reporting</AssemblyName>
+    <!-- IReportGenerator implementations (HTML/JSON/CSV/ZIP), TimelineBuilder,
+         SessionComparer. Wraps Core's CorrelationEngine + DiagnosticHypothesisEngine.
+         The HTML output is a single self-contained file: the template, stylesheet and
+         canvas script below are embedded and inlined at render time. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StutterDiag.Core\StutterDiag.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Scriban" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The default globs would otherwise pick these up as None items. -->
+    <None Remove="Templates\**\*" />
+    <None Remove="Assets\**\*" />
+    <EmbeddedResource Include="Templates\report.sbn" />
+    <EmbeddedResource Include="Assets\report.css" />
+    <EmbeddedResource Include="Assets\timeline.js" />
+  </ItemGroup>
+
+</Project>

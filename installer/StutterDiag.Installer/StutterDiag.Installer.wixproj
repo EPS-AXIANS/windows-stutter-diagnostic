@@ -1,0 +1,40 @@
+<Project Sdk="WixToolset.Sdk/4.0.5">
+
+  <!--
+    Windows Stutter Diagnostic - WiX v4 per-machine MSI (x64).
+
+    The payload is the output of `dotnet publish` for each executable. Publish first, then build:
+
+      dotnet publish src/StutterDiag.Service/StutterDiag.Service.csproj -c Release -r win-x64 --self-contained true -o installer/StutterDiag.Installer/publish/service
+      dotnet publish src/StutterDiag.Gui/StutterDiag.Gui.csproj         -c Release -r win-x64 --self-contained true -o installer/StutterDiag.Installer/publish/gui
+      dotnet publish src/StutterDiag.Cli/StutterDiag.Cli.csproj         -c Release -r win-x64 --self-contained true -o installer/StutterDiag.Installer/publish/cli
+      dotnet build  installer/StutterDiag.Installer -c Release   # -> installer/StutterDiag.Installer/bin/x64/Release/StutterDiag.msi
+
+    Point somewhere else with  -p:PublishRoot=<dir>  (it must contain \service \gui \cli subfolders).
+    With NO payload present the project still links a skeleton MSI, so `dotnet build StutterDiag.sln`
+    (which the CI does before publishing) never fails on this project.
+
+    The WiX v4 MSBuild SDK is restored from NuGet automatically - no global `wix` tool needed.
+  -->
+
+  <PropertyGroup>
+    <ProjectGuid>{33333333-0000-0000-0000-000000000001}</ProjectGuid>
+    <OutputName>StutterDiag</OutputName>
+    <OutputType>Package</OutputType>
+    <InstallerPlatform>x64</InstallerPlatform>
+
+    <!-- This project is not part of central package management (WiX SDK + ext have their own versions). -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+
+    <PublishRoot Condition="'$(PublishRoot)' == ''">$(MSBuildProjectDirectory)\publish</PublishRoot>
+    <DocsDir>$(MSBuildProjectDirectory)\..\..\docs</DocsDir>
+
+    <DefineConstants>Version=$(Version);PublishRoot=$(PublishRoot);DocsDir=$(DocsDir)</DefineConstants>
+    <DefineConstants Condition="Exists('$(PublishRoot)\service\StutterDiag.Service.exe')">$(DefineConstants);HasPayload</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="4.0.5" />
+  </ItemGroup>
+
+</Project>

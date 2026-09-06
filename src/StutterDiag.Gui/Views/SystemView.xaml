@@ -1,0 +1,131 @@
+<UserControl x:Class="StutterDiag.Gui.Views.SystemView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:StutterDiag.Gui.Models"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="900">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="KvRow" DataType="{x:Type models:KeyValueRow}">
+            <Grid Margin="0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="190" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding Key}" Style="{StaticResource Muted}"
+                           VerticalAlignment="Top" />
+                <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap"
+                           Foreground="{Binding Value, Converter={StaticResource UnavailableBrush}}" />
+            </Grid>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Padding="20,16">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="System" Style="{StaticResource H1}" Margin="0" />
+                    <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                               Text="Read-only. Values the service could not obtain reliably are shown as &quot;Unavailable&quot; and greyed." />
+                </StackPanel>
+                <Button Content="Refresh" Command="{Binding RefreshCommand}"
+                        HorizontalAlignment="Right" VerticalAlignment="Top" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20,0,20,20">
+            <StackPanel>
+                <TextBlock Text="{Binding ServiceHint}" Style="{StaticResource Muted}" Margin="0,0,0,10"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding ServiceHint, Converter={StaticResource NullOrEmptyToVis}}" />
+
+                <GroupBox Header="Windows">
+                    <ItemsControl ItemsSource="{Binding Info.Windows}" ItemTemplate="{StaticResource KvRow}" />
+                </GroupBox>
+
+                <GroupBox Header="CPU">
+                    <ItemsControl ItemsSource="{Binding Info.Cpu}" ItemTemplate="{StaticResource KvRow}" />
+                </GroupBox>
+
+                <GroupBox Header="GPU(s)">
+                    <ItemsControl ItemsSource="{Binding Info.Gpus}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1"
+                                        Padding="0,6" Margin="0,0,0,6">
+                                    <ItemsControl ItemsSource="{Binding}" ItemTemplate="{StaticResource KvRow}" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </GroupBox>
+
+                <GroupBox Header="Memory">
+                    <ItemsControl ItemsSource="{Binding Info.Memory}" ItemTemplate="{StaticResource KvRow}" />
+                </GroupBox>
+
+                <GroupBox Header="Motherboard">
+                    <ItemsControl ItemsSource="{Binding Info.Motherboard}" ItemTemplate="{StaticResource KvRow}" />
+                </GroupBox>
+
+                <GroupBox Header="BIOS">
+                    <ItemsControl ItemsSource="{Binding Info.Bios}" ItemTemplate="{StaticResource KvRow}" />
+                </GroupBox>
+
+                <GroupBox Header="TPM (inferred)">
+                    <StackPanel>
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="190" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Inferred type" Style="{StaticResource Muted}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <TextBlock Text="{Binding Info.TpmInferredType}" FontWeight="SemiBold" />
+                                <TextBlock Text="  (inferred — not reported by Windows)"
+                                           Style="{StaticResource Muted}" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="190" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Inference basis" Style="{StaticResource Muted}"
+                                       VerticalAlignment="Top" />
+                            <TextBlock Grid.Column="1" Text="{Binding Info.TpmInferenceBasis}" TextWrapping="Wrap" />
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding Info.TpmDetails}" ItemTemplate="{StaticResource KvRow}"
+                                      Margin="0,4,0,0" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Security (Secure Boot, VBS, Memory Integrity, Hyper-V, Core Isolation)">
+                    <ItemsControl ItemsSource="{Binding Info.Security}" ItemTemplate="{StaticResource KvRow}" />
+                </GroupBox>
+
+                <GroupBox Header="Drivers">
+                    <DataGrid ItemsSource="{Binding Info.Drivers}" AutoGenerateColumns="False"
+                              IsReadOnly="True" HeadersVisibility="Column" MaxHeight="360"
+                              EnableRowVirtualization="True"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              VirtualizingPanel.VirtualizationMode="Recycling">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" />
+                            <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="*" />
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date}" Width="*" />
+                            <DataGridTextColumn Header="Vendor" Binding="{Binding Vendor}" Width="*" />
+                            <DataGridTextColumn Header="Class" Binding="{Binding DeviceClass}" Width="*" />
+                            <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="2*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </GroupBox>
+
+                <TextBlock Text="No system information loaded yet." Style="{StaticResource Muted}"
+                           Visibility="{Binding LoadedOnce, Converter={StaticResource BoolToVis}, ConverterParameter=Invert}" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

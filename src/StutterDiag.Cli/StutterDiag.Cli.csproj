@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    StutterDiag.Cli — `stutterdiag <verb>` over the service's named-pipe IPC.
+    References Core + Ipc only (ARCHITECTURE §3). No external command-line parser:
+    the arg handling is hand-rolled (System.CommandLine is not in Directory.Packages.props).
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>StutterDiag.Cli</RootNamespace>
+    <AssemblyName>StutterDiag.Cli</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StutterDiag.Core\StutterDiag.Core.csproj" />
+    <ProjectReference Include="..\StutterDiag.Ipc\StutterDiag.Ipc.csproj" />
+  </ItemGroup>
+
+</Project>

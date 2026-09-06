@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    WPF front-end. Optional: the Windows service keeps running with no GUI attached
+    (see docs/ARCHITECTURE.md §3). This app talks to the service ONLY through
+    StutterDiag.Ipc and NEVER runs elevated (app.manifest => asInvoker).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>StutterDiag.Gui</RootNamespace>
+    <AssemblyName>StutterDiag.Gui</AssemblyName>
+    <OutputType>WinExe</OutputType>
+    <UseWPF>true</UseWPF>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- No auto <StartupUri>: startup is driven from App.xaml.cs for single-instance. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Ipc is the entire backend surface. It transitively brings Core (AppConfig, models). -->
+    <ProjectReference Include="..\StutterDiag.Ipc\StutterDiag.Ipc.csproj" />
+  </ItemGroup>
+
+</Project>

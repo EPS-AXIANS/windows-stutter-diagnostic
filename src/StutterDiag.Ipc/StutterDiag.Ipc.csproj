@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>StutterDiag.Ipc</RootNamespace>
+    <AssemblyName>StutterDiag.Ipc</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StutterDiag.Core\StutterDiag.Core.csproj" />
+  </ItemGroup>
+
+</Project>

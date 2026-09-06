@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    StutterDiag.Monitors — all IMonitor / IStutterDetector / I*Monitor implementations
+    that are not pure ETW plumbing (ARCHITECTURE.md §3).
+
+    Kept deliberately small. PackageReference versions come from Directory.Packages.props
+    (CPM) — never add Version= here. Engineers adding EventLog / Device / Power monitors
+    should append the packages they need (e.g. System.Diagnostics.EventLog) below.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>StutterDiag.Monitors</RootNamespace>
+    <AssemblyName>StutterDiag.Monitors</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StutterDiag.Core\StutterDiag.Core.csproj" />
+    <ProjectReference Include="..\StutterDiag.Etw\StutterDiag.Etw.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Test seam: HeartbeatStutterDetector.Measure(...) and the IProbeClock fake. -->
+    <InternalsVisibleTo Include="StutterDiag.Monitors.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- WMI/CIM for the CPU/GPU/System monitors; PDH perf counters for the samplers. -->
+    <PackageReference Include="System.Management" />
+    <PackageReference Include="System.Diagnostics.PerformanceCounter" />
+    <!-- EventLogWatcher push subscriptions (EventLog / Whea / Tpm / Device monitors). -->
+    <PackageReference Include="System.Diagnostics.EventLog" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,35 @@
+# Build output
+bin/
+obj/
+publish/
+artifacts/
+*.user
+*.suo
+.vs/
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# Test / coverage
+[Tt]est[Rr]esults/
+coverage/
+*.trx
+*.coverage
+*.coveragexml
+
+# Local runtime data (never commit collected diagnostics)
+data/
+logs/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+
+# WiX
+*.wixpdb
+*.msi
+
+# OS
+Thumbs.db
+.DS_Store

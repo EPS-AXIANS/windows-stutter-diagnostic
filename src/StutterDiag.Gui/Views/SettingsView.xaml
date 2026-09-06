@@ -1,0 +1,250 @@
+<UserControl x:Class="StutterDiag.Gui.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="900">
+
+    <UserControl.Resources>
+        <Style x:Key="FieldRow" TargetType="DockPanel">
+            <Setter Property="Margin" Value="0,3" />
+            <Setter Property="LastChildFill" Value="True" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="Width" Value="240" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Muted}" />
+        </Style>
+        <Style x:Key="NumBox" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Width" Value="120" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+    </UserControl.Resources>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Padding="20,16">
+            <Grid>
+                <StackPanel>
+                    <TextBlock Text="Settings" Style="{StaticResource H1}" Margin="0" />
+                    <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                               Text="Edits the effective configuration. Some changes take effect only after the StutterDiag service is restarted." />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                    <Button Content="Reload" Command="{Binding LoadCommand}" Margin="0,0,8,0" />
+                    <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource AccentButton}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20,0,20,20">
+            <StackPanel>
+                <TextBlock Text="{Binding ServiceHint}" Style="{StaticResource Muted}" Margin="0,0,0,10"
+                           TextWrapping="Wrap"
+                           Visibility="{Binding ServiceHint, Converter={StaticResource NullOrEmptyToVis}}" />
+
+                <TextBlock Text="{Binding StatusText}" Margin="0,0,0,8" TextWrapping="Wrap"
+                           Visibility="{Binding StatusText, Converter={StaticResource NullOrEmptyToVis}}" />
+
+                <Border Style="{StaticResource Card}" Margin="0,0,0,10"
+                        Visibility="{Binding Warnings.Count, Converter={StaticResource NullOrEmptyToVis}}">
+                    <StackPanel>
+                        <TextBlock Text="Validation warnings" Style="{StaticResource H2}" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding Warnings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                               Foreground="{DynamicResource Brush.Warn}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <GroupBox Header="Stutter thresholds (ms)">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Micro-stutter" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.StutterThresholds.MicroStutterMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Major" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.StutterThresholds.MajorMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Severe" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.StutterThresholds.SevereMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Critical" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.StutterThresholds.CriticalMs}" />
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Correlation">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Pre-roll (s)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Correlation.PreRollSeconds}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Post-roll (s)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Correlation.PostRollSeconds}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="High proximity (ms)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Correlation.HighProximityMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Medium proximity (ms)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Correlation.MediumProximityMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Baseline window (min)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Correlation.BaselineWindowMinutes}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="MAD k" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Correlation.MadK}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Base-rate window (s)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Correlation.BaseRateWindowSeconds}" />
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Heartbeat detector">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Probe interval (ms)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Heartbeat.ProbeIntervalMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Probe count" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Heartbeat.ProbeCount}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Timer resolution (ms)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Heartbeat.TimerResolutionMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Aggregate window (ms)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Heartbeat.AggregateWindowMs}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Min report (ms)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Heartbeat.MinReportMs}" />
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="High-resolution window">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Window (s)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.HighRes.WindowSeconds}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Ring buffer (s)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.HighRes.RingBufferSeconds}" />
+                        </DockPanel>
+                        <CheckBox Content="Enable context-switch capture" IsChecked="{Binding Config.HighRes.EnableContextSwitch}" />
+                        <CheckBox Content="Enable profile (sampled stack) capture" IsChecked="{Binding Config.HighRes.EnableProfile}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="ETW">
+                    <StackPanel>
+                        <CheckBox Content="Enable kernel session (requires the service to run with privilege)" IsChecked="{Binding Config.Etw.EnableKernel}" />
+                        <CheckBox Content="Enable GPU providers" IsChecked="{Binding Config.Etw.EnableGpu}" />
+                        <CheckBox Content="Enable StorPort provider" IsChecked="{Binding Config.Etw.EnableStorPort}" />
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Buffer size (KB)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Etw.BufferSizeKb}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Buffer count" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Etw.BufferCount}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Flush (s)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Etw.FlushSeconds}" />
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Sampling">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Perf counter rate (Hz)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Sampling.PerfCounterHz}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Process snapshot (s)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Sampling.ProcessSnapshotSeconds}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Top process count" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Sampling.TopProcessCount}" />
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Retention">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Days" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Retention.Days}" />
+                        </DockPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Max DB size (MB)" Style="{StaticResource FieldLabel}" />
+                            <TextBox Style="{StaticResource NumBox}" Text="{Binding Config.Retention.MaxDbSizeMb}" />
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Gaming mode">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="Hotkey" Style="{StaticResource FieldLabel}" />
+                            <TextBox Width="200" HorizontalAlignment="Left" Text="{Binding Config.GamingMode.Hotkey}" />
+                        </DockPanel>
+                        <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap"
+                                   Text="Example: Ctrl+Alt+F12. Applied to the running GUI immediately after Save." />
+                        <CheckBox Content="Auto-save the capture window on a user mark" IsChecked="{Binding Config.GamingMode.AutoSaveWindow}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="GPU vendor SDKs">
+                    <StackPanel>
+                        <CheckBox Content="NVML (NVIDIA)" IsChecked="{Binding Config.GpuVendorSdks.Nvml}" />
+                        <CheckBox Content="ADLX (AMD)" IsChecked="{Binding Config.GpuVendorSdks.Adlx}" />
+                        <CheckBox Content="IGCL (Intel)" IsChecked="{Binding Config.GpuVendorSdks.Igcl}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Privacy">
+                    <StackPanel>
+                        <CheckBox Content="Record process command lines" IsChecked="{Binding Config.Privacy.RecordProcessCommandLines}" />
+                        <CheckBox Content="Record user names" IsChecked="{Binding Config.Privacy.RecordUserNames}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <GroupBox Header="Service">
+                    <StackPanel>
+                        <DockPanel Style="{StaticResource FieldRow}">
+                            <TextBlock Text="IPC pipe name" Style="{StaticResource FieldLabel}" />
+                            <TextBox Width="240" HorizontalAlignment="Left" Text="{Binding Config.Service.IpcPipeName}" />
+                        </DockPanel>
+                        <CheckBox Content="Start monitoring automatically" IsChecked="{Binding Config.Service.AutoStartMonitoring}" />
+                    </StackPanel>
+                </GroupBox>
+
+                <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,4,0,0"
+                           Text="Note: the service must be restarted for some changes (ETW sessions, buffer sizes, storage paths, IPC pipe name) to take effect." />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,50 @@
+# GitHub Actions CI for Windows Stutter Diagnostic.
+# This file is a copy of build/ci.yml, placed where GitHub Actions will actually run it.
+# Keep the two in sync.
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore StutterDiag.sln
+
+      - name: Build
+        run: dotnet build StutterDiag.sln -c Release --no-restore
+
+      - name: Test
+        run: dotnet test StutterDiag.sln -c Release --no-build --logger "trx;LogFileName=test.trx" --collect:"XPlat Code Coverage"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/TestResults/**'
+
+  portable:
+    needs: build-test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish portable
+        run: pwsh ./build/publish-portable.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portable
+          path: artifacts/*.zip

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Windows Stutter Diagnostic - per-machine, x64 MSI.
+
+  Payload  : $(var.PublishRoot)\service | \gui | \cli  (see StutterDiag.Installer.wixproj header
+             for the exact `dotnet publish ... -o publish\{service|gui|cli}` commands).
+  Docs     : taken straight from the repo tree ($(var.DocsDir)), so they are always present.
+  Service  : name "StutterDiag.Service", display name "Windows Stutter Diagnostic Service".
+             Start="demand" by default; ticking the AUTOSTART checkbox (or `msiexec ... AUTOSTART=1`)
+             flips the SCM start type to Automatic (delayed) via a registry write.
+  Upgrade  : MajorUpgrade + a fixed UpgradeCode; component GUIDs are auto (Guid="*").
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="Windows Stutter Diagnostic"
+           Manufacturer="StutterDiag"
+           Version="$(var.Version)"
+           UpgradeCode="6E9B8E8A-2C4D-4E1A-9E7F-2A1B3C4D5E6F"
+           Scope="perMachine"
+           Compressed="yes">
+
+    <SummaryInformation Description="Windows Stutter Diagnostic - local, no-telemetry stutter and correlation recorder" />
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Launch Condition="VersionNT64" Message="[ProductName] requires 64-bit Windows." />
+
+    <!-- Public + secured so it survives the elevation hand-off and can be set from the UI or the command line. -->
+    <Property Id="AUTOSTART" Value="0" Secure="yes" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="StutterDiag">
+        <Directory Id="DOCSFOLDER" Name="docs" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ShortcutFolder" Name="Windows Stutter Diagnostic" />
+    </StandardDirectory>
+
+    <Feature Id="Main" Title="Windows Stutter Diagnostic" Level="1">
+<?ifdef HasPayload ?>
+      <ComponentGroupRef Id="ServicePayload" />
+      <ComponentGroupRef Id="GuiPayload" />
+      <ComponentGroupRef Id="CliPayload" />
+      <ComponentRef Id="ServiceExe" />
+      <ComponentRef Id="GuiShortcut" />
+<?else ?>
+      <ComponentRef Id="SkeletonMarker" />
+<?endif ?>
+      <ComponentRef Id="AutostartRegistry" />
+      <ComponentGroupRef Id="DocFiles" />
+    </Feature>
+
+    <!-- AUTOSTART ticked: turn the SCM start type to 2 (Automatic) and mark it delayed.
+         Unticked: ServiceInstall's Start="demand" stands. -->
+    <Component Id="AutostartRegistry" Directory="INSTALLFOLDER" Guid="*" Condition="AUTOSTART = &quot;1&quot;">
+      <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\StutterDiag.Service"
+                     Name="Start" Type="integer" Value="2" KeyPath="yes" />
+      <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\StutterDiag.Service"
+                     Name="DelayedAutostart" Type="integer" Value="1" />
+    </Component>
+
+<?ifndef HasPayload ?>
+    <!-- No published payload: keep the MSI linkable so the solution build stays green. -->
+    <Component Id="SkeletonMarker" Directory="INSTALLFOLDER" Guid="*">
+      <RegistryValue Root="HKLM" Key="SOFTWARE\StutterDiag" Name="InstallDir" Type="string"
+                     Value="[INSTALLFOLDER]" KeyPath="yes" />
+    </Component>
+<?endif ?>
+
+    <!-- Minimal WixUI + a "start automatically" checkbox merged onto the install-directory page. -->
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+    <UI>
+      <Dialog Id="InstallDirDlg">
+        <Control Id="AutostartCheckBox" Type="CheckBox" X="20" Y="178" Width="300" Height="17"
+                 Property="AUTOSTART" CheckBoxValue="1"
+                 Text="Start the StutterDiag service automatically with Windows (delayed start)" />
+      </Dialog>
+    </UI>
+
+  </Package>
+
+<?ifdef HasPayload ?>
+  <Fragment>
+    <!-- Bulk service payload, everything except the exe itself (which needs its own component
+         for ServiceInstall/ServiceControl). appsettings.json is harvested here if published. -->
+    <ComponentGroup Id="ServicePayload" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishRoot)\service\**">
+        <Exclude Files="$(var.PublishRoot)\service\StutterDiag.Service.exe" />
+      </Files>
+    </ComponentGroup>
+
+    <ComponentGroup Id="GuiPayload" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishRoot)\gui\**" />
+    </ComponentGroup>
+
+    <ComponentGroup Id="CliPayload" Directory="INSTALLFOLDER">
+      <Files Include="$(var.PublishRoot)\cli\**" />
+    </ComponentGroup>
+
+    <Component Id="ServiceExe" Directory="INSTALLFOLDER" Bitness="always64" Guid="*">
+      <File Id="filStutterDiagServiceExe"
+            Source="$(var.PublishRoot)\service\StutterDiag.Service.exe" KeyPath="yes" />
+      <ServiceInstall Id="siStutterDiagService"
+                      Name="StutterDiag.Service"
+                      DisplayName="Windows Stutter Diagnostic Service"
+                      Description="Background collector: detects stutters and records the surrounding Windows activity for later temporal correlation. No telemetry."
+                      Type="ownProcess"
+                      Start="demand"
+                      ErrorControl="normal"
+                      Account="LocalSystem"
+                      Vital="yes" />
+      <ServiceControl Id="scStutterDiagService"
+                      Name="StutterDiag.Service"
+                      Stop="both"
+                      Remove="uninstall"
+                      Wait="yes" />
+    </Component>
+
+    <Component Id="GuiShortcut" Directory="ShortcutFolder" Guid="*">
+      <Shortcut Id="scutGui"
+                Name="Windows Stutter Diagnostic"
+                Description="Open the Windows Stutter Diagnostic GUI"
+                Target="[INSTALLFOLDER]StutterDiag.Gui.exe"
+                WorkingDirectory="INSTALLFOLDER" />
+      <RemoveFolder Id="rmShortcutFolder" Directory="ShortcutFolder" On="uninstall" />
+      <RegistryValue Root="HKCU" Key="SOFTWARE\StutterDiag" Name="gui" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+  </Fragment>
+<?endif ?>
+
+  <Fragment>
+    <!-- docs\ come from the repo tree so this always resolves. -->
+    <ComponentGroup Id="DocFiles" Directory="DOCSFOLDER">
+      <Files Include="$(var.DocsDir)\**" />
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>

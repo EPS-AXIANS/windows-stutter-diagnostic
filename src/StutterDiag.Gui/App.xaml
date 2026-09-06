@@ -1,0 +1,15 @@
+<Application x:Class="StutterDiag.Gui.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- No StartupUri: startup is driven from App.xaml.cs for single-instance handling. -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Converters/Converters.xaml" />
+                <!-- Index 1: the active theme. Swapped at runtime to follow the OS setting. -->
+                <ResourceDictionary Source="Themes/Light.xaml" />
+                <ResourceDictionary Source="Themes/Shared.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

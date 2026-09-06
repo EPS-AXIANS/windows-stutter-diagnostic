@@ -1,0 +1,16 @@
+<Project>
+
+  <!-- Import the solution-wide defaults first (this file shadows the auto-import of the
+       repo-root Directory.Build.props for everything under tests/). -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- Test assemblies never ship; skip the doc/deterministic-id churn. -->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

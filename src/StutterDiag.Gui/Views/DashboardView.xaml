@@ -1,0 +1,190 @@
+<UserControl x:Class="StutterDiag.Gui.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="clr-namespace:StutterDiag.Gui.Models"
+             mc:Ignorable="d"
+             d:DesignHeight="700" d:DesignWidth="900">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="20">
+        <StackPanel>
+            <TextBlock Text="Dashboard" Style="{StaticResource H1}" />
+
+            <TextBlock Text="{Binding ServiceHint}" Style="{StaticResource Muted}"
+                       Margin="0,0,0,10" TextWrapping="Wrap"
+                       Visibility="{Binding ServiceHint, Converter={StaticResource NullOrEmptyToVis}}" />
+
+            <!-- Status + elapsed + start/stop -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding StatusGlyph}" FontSize="28" VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StatusText}" FontSize="18" FontWeight="SemiBold" />
+                            <TextBlock Style="{StaticResource Muted}">
+                                <Run Text="Elapsed " />
+                                <Run Text="{Binding ElapsedText, Mode=OneWay}" FontFamily="Consolas" />
+                            </TextBlock>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="Mode" VerticalAlignment="Center" Style="{StaticResource Muted}"
+                                   Margin="0,0,6,0" />
+                        <ComboBox ItemsSource="{Binding Modes}" SelectedItem="{Binding SelectedMode}"
+                                  Width="110" Margin="0,0,10,0" VerticalAlignment="Center" />
+                        <Button Content="{Binding ToggleLabel}" Command="{Binding ToggleMonitoringCommand}"
+                                Style="{StaticResource AccentButton}" MinWidth="96" Padding="16,8" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Counters -->
+            <UniformGrid Columns="5" Margin="0,0,0,14">
+                <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding StuttersDetected}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Text="Stutters detected" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding MajorStutters}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Text="Major stutters" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TpmEvents}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Text="TPM events" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="{Binding WheaEvents}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Text="WHEA events" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding DpcSpikes}" FontSize="24" FontWeight="Bold" />
+                        <TextBlock Text="DPC spikes" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Last event -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14">
+                <StackPanel>
+                    <TextBlock Text="Last event" Style="{StaticResource H2}" Margin="0,0,0,4" />
+                    <TextBlock Text="{Binding LastEventText}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                <Button Content="VIEW TIMELINE" Command="{Binding ViewTimelineCommand}" Margin="0,0,10,0" />
+                <Button Content="GENERATE REPORT" Command="{Binding GenerateReportCommand}" />
+            </StackPanel>
+
+            <!-- Warnings (non-blocking) -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"
+                    Visibility="{Binding Warnings.Count, Converter={StaticResource NullOrEmptyToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Notes" Style="{StaticResource H2}" Margin="0,0,0,4" />
+                    <ItemsControl ItemsSource="{Binding Warnings}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="0,2"
+                                           Foreground="{DynamicResource Brush.Warn}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Automatic diagnostic — correlation only, never causation (ARCHITECTURE §1, §29) -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,14"
+                    Visibility="{Binding Findings.Count, Converter={StaticResource NullOrEmptyToVis}}">
+                <StackPanel>
+                    <TextBlock Text="Automatic diagnostic" Style="{StaticResource H2}" Margin="0,0,0,2" />
+                    <TextBlock Text="Temporal correlations only. Correlation does not prove causation."
+                               Style="{StaticResource Muted}" Margin="0,0,0,8" TextWrapping="Wrap" />
+                    <ItemsControl ItemsSource="{Binding Findings}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:FindingRow}">
+                                <Border Margin="0,4" Padding="10" CornerRadius="6"
+                                        Background="{DynamicResource Brush.Surface}"
+                                        BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <Border CornerRadius="9" Padding="8,2"
+                                                    Background="{Binding Score, Converter={StaticResource ScoreBrush}}">
+                                                <TextBlock Text="{Binding Score}" Foreground="White"
+                                                           FontSize="10" FontWeight="SemiBold" />
+                                            </Border>
+                                            <TextBlock Text="{Binding Signal}" FontWeight="SemiBold"
+                                                       Margin="8,0,0,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Coverage}" Style="{StaticResource Muted}"
+                                                       Margin="8,0,0,0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,1">
+                                            <Run Text="OBSERVATION: " FontWeight="SemiBold" />
+                                            <Run Text="{Binding Observation, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,1">
+                                            <Run Text="HYPOTHESIS: " FontWeight="SemiBold" />
+                                            <Run Text="{Binding Hypothesis, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock TextWrapping="Wrap" Margin="0,1" Style="{StaticResource Muted}">
+                                            <Run Text="NOT PROVEN: " FontWeight="SemiBold" />
+                                            <Run Text="{Binding NotProven, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <!-- Per-monitor health -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Monitor health" Style="{StaticResource H2}" Margin="0,0,0,6" />
+                    <ItemsControl ItemsSource="{Binding Monitors}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:MonitorHealthRow}">
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center" />
+                                    <Border Grid.Column="1" CornerRadius="9" Padding="8,2"
+                                            Background="{Binding Status, Converter={StaticResource HealthBrush}}">
+                                        <TextBlock Text="{Binding Status}" Foreground="White" FontSize="10"
+                                                   FontWeight="SemiBold" />
+                                    </Border>
+                                    <TextBlock Grid.Column="2" Text="{Binding Note}" Margin="10,0,0,0"
+                                               VerticalAlignment="Center" TextWrapping="Wrap"
+                                               Style="{StaticResource Muted}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="No monitor health reported." Style="{StaticResource Muted}"
+                               Visibility="{Binding Monitors.Count, Converter={StaticResource NullOrEmptyToVis}, ConverterParameter=Invert}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
