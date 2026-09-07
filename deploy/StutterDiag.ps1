@@ -162,6 +162,38 @@ function Invoke-Cli {
 
 # ---------------------------------------------------------------- actions
 
+# Un service encore "en cours d'arret" garde ses fichiers ouverts : on attend l'arret reel
+# plutot qu'un delai fixe.
+function Wait-ServiceStopped {
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    while ($sw.Elapsed.TotalSeconds -lt 30) {
+        $svc = Get-Service -Name $ServiceName -ErrorAction SilentlyContinue
+        if (-not $svc -or $svc.Status -eq 'Stopped') { return }
+        Start-Sleep -Milliseconds 500
+    }
+    Warn2 "Le service met du temps a s'arreter ; on continue."
+}
+
+# L'interface graphique est lancee a la fin de l'installation et n'est jamais arretee.
+# A la reinstallation elle tient encore ses DLL WPF ouvertes dans $InstallDir, et la copie
+# echoue avec "le fichier est en cours d'utilisation par un autre processus".
+function Stop-AppProcesses {
+    foreach ($name in 'StutterDiag.Gui', 'StutterDiag.Cli') {
+        $procs = @(Get-Process -Name $name -ErrorAction SilentlyContinue | Where-Object {
+            $p = $null
+            try { $p = $_.Path } catch { }
+            $p -and $p.StartsWith($InstallDir, [System.StringComparison]::OrdinalIgnoreCase)
+        })
+        foreach ($proc in $procs) {
+            Info ("Fermeture de {0} (PID {1}) qui utilise les fichiers a remplacer..." -f $proc.ProcessName, $proc.Id)
+            try { $proc.CloseMainWindow() | Out-Null } catch { }
+            try {
+                if (-not $proc.WaitForExit(5000)) { $proc.Kill(); [void]$proc.WaitForExit(5000) }
+            } catch { }
+        }
+    }
+}
+
 function Install-App {
     New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
     $src = Resolve-App
@@ -169,9 +201,10 @@ function Install-App {
 
     if (Get-Service -Name $ServiceName -ErrorAction SilentlyContinue) {
         Info "Arret du service en place..."
-        & sc.exe stop $ServiceName 2>$null | Out-Null
-        Start-Sleep -Seconds 2
+        Invoke-BestEffort 'sc.exe' @('stop', $ServiceName)
+        Wait-ServiceStopped
     }
+    Stop-AppProcesses
 
     Info "Copie des fichiers vers $InstallDir ..."
     Get-ChildItem -Path $src -Force | ForEach-Object {
