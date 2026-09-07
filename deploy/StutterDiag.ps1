@@ -48,6 +48,17 @@ function Good  ([string]$m) { Write-Log $m 'Green' }
 function Warn2 ([string]$m) { Write-Log $m 'Yellow' }
 function Fail2 ([string]$m) { Write-Log $m 'Red' }
 
+# Ce script tourne avec $ErrorActionPreference = 'Stop'. Sous Windows PowerShell 5.1, la
+# moindre ecriture sur stderr par un programme natif devient alors une erreur TERMINANTE,
+# et "2>$null" ne l'empeche pas de facon fiable. A utiliser pour les appels dont l'echec
+# ne doit jamais interrompre l'appelant.
+function Invoke-BestEffort {
+    param([Parameter(Mandatory)][string]$Exe, [string[]]$Arguments = @())
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $Exe @Arguments 2>&1 | Out-Null } catch { } finally { $ErrorActionPreference = $prev }
+}
+
 # --------------------------------------------------------------- élévation admin
 
 function Assert-Admin {
@@ -169,7 +180,7 @@ function Install-App {
     if (-not (Test-Path (ServiceExe))) { throw "La copie a echoue : StutterDiag.Service.exe absent de $InstallDir" }
 
     Info "Enregistrement du service Windows..."
-    & (ServiceExe) uninstall 2>$null | Out-Null
+    Invoke-BestEffort (ServiceExe) @('uninstall')
     & (ServiceExe) install
     if ($LASTEXITCODE -ne 0) { throw "Echec de l'enregistrement du service (code $LASTEXITCODE)." }
 

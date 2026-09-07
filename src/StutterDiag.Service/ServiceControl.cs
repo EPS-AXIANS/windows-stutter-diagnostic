@@ -81,7 +81,10 @@ public static class ServiceControl
         Console.WriteLine($"Installing '{ServiceName}' ({exe})");
 
         string account = VirtualAccount;
-        int rc = Sc($"create {ServiceName} binPath= {binPath} start= delayed-auto obj= \"{VirtualAccount}\" DisplayName= \"{DisplayName}\"");
+        // Quiet: a rejected virtual account is an expected outcome handled by the LocalSystem
+        // fallback below, so it must not abort the caller.
+        int rc = Sc($"create {ServiceName} binPath= {binPath} start= delayed-auto obj= \"{VirtualAccount}\" DisplayName= \"{DisplayName}\"",
+                    quietOnFailure: true);
         if (rc == 0)
         {
             Console.WriteLine($"  created on virtual service account {VirtualAccount}");
@@ -124,11 +127,21 @@ public static class ServiceControl
     private static int Uninstall()
     {
         Console.WriteLine($"Removing '{ServiceName}'");
-        Sc($"stop {ServiceName}");
+
+        // Install runs this first to clear any previous registration, so on a first install
+        // nothing is there to remove. That is the normal case, not a failure: sc would exit
+        // 1060 and its stderr would abort the caller.
+        if (!ServiceExists())
+        {
+            Console.WriteLine("  not installed; nothing to remove");
+            return 0;
+        }
+
+        Sc($"stop {ServiceName}", quietOnFailure: true);
         TryWaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(15));
 
-        int rc = Sc($"delete {ServiceName}");
-        if (rc != 0)
+        int rc = Sc($"delete {ServiceName}", quietOnFailure: true);
+        if (rc != 0 && ServiceExists())
         {
             Console.Error.WriteLine("  sc delete failed (is the service still stopping? try again)");
             return 3;
@@ -220,6 +233,21 @@ public static class ServiceControl
     }
 
     [SupportedOSPlatform("windows")]
+    private static bool ServiceExists()
+    {
+        try
+        {
+            using var sc = new ServiceController(ServiceName);
+            _ = sc.Status; // throws if not installed
+            return true;
+        }
+        catch (InvalidOperationException)
+        {
+            return false;
+        }
+    }
+
+    [SupportedOSPlatform("windows")]
     private static void TryWaitForStatus(ServiceControllerStatus status, TimeSpan timeout)
     {
         try
@@ -235,9 +263,15 @@ public static class ServiceControl
 
     // ------------------------------------------------------------------
 
-    private static int Sc(string arguments) => Run("sc.exe", arguments);
+    private static int Sc(string arguments, bool quietOnFailure = false) => Run("sc.exe", arguments, quietOnFailure);
 
-    private static int Run(string fileName, string arguments)
+    /// <param name="quietOnFailure">
+    /// Do not echo the child's stderr when it fails. Set this whenever the caller handles the
+    /// failure itself: callers run us under PowerShell with <c>$ErrorActionPreference = 'Stop'</c>,
+    /// where any stderr write by a native command becomes a terminating error, so echoing an
+    /// expected failure would abort the caller before it can recover.
+    /// </param>
+    private static int Run(string fileName, string arguments, bool quietOnFailure = false)
     {
         var psi = new ProcessStartInfo(fileName, arguments)
         {
@@ -253,7 +287,7 @@ public static class ServiceControl
         p.WaitForExit();
 
         if (!string.IsNullOrWhiteSpace(stdout)) Console.WriteLine(Indent(stdout));
-        if (p.ExitCode != 0 && !string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(Indent(stderr));
+        if (p.ExitCode != 0 && !quietOnFailure && !string.IsNullOrWhiteSpace(stderr)) Console.Error.WriteLine(Indent(stderr));
         return p.ExitCode;
     }
 
