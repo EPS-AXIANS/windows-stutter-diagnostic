@@ -5,9 +5,9 @@
 
     The payload is the output of `dotnet publish` for each executable. Publish first, then build:
 
-      dotnet publish src/StutterDiag.Service/StutterDiag.Service.csproj -c Release -r win-x64 --self-contained true -o installer/StutterDiag.Installer/publish/service
-      dotnet publish src/StutterDiag.Gui/StutterDiag.Gui.csproj         -c Release -r win-x64 --self-contained true -o installer/StutterDiag.Installer/publish/gui
-      dotnet publish src/StutterDiag.Cli/StutterDiag.Cli.csproj         -c Release -r win-x64 --self-contained true -o installer/StutterDiag.Installer/publish/cli
+      dotnet publish src/StutterDiag.Service/StutterDiag.Service.csproj -c Release -r win-x64 -p:SelfContained=true -o installer/StutterDiag.Installer/publish/service
+      dotnet publish src/StutterDiag.Gui/StutterDiag.Gui.csproj         -c Release -r win-x64 -p:SelfContained=true -o installer/StutterDiag.Installer/publish/gui
+      dotnet publish src/StutterDiag.Cli/StutterDiag.Cli.csproj         -c Release -r win-x64 -p:SelfContained=true -o installer/StutterDiag.Installer/publish/cli
       dotnet build  installer/StutterDiag.Installer -c Release   # -> installer/StutterDiag.Installer/bin/x64/Release/StutterDiag.msi
 
     Point somewhere else with  -p:PublishRoot=<dir>  (it must contain \service \gui \cli subfolders).
