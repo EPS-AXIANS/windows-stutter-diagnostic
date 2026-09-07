@@ -156,7 +156,14 @@ function Invoke-Cli {
     param([string[]]$CliArgs)
     $cli = CliExe
     if (-not (Test-Path $cli)) { throw "StutterDiag.Cli.exe introuvable - lancez d'abord l'installation (choix 1)." }
-    & $cli @CliArgs
+
+    # La sortie du CLI est ecrite directement a l'ecran, et seul le code de sortie repart dans
+    # le pipeline. Sinon les deux se melangent et un "| Out-Null" chez l'appelant fait
+    # disparaitre les messages destines a l'operateur en meme temps que le code.
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { & $cli @CliArgs 2>&1 | ForEach-Object { Write-Host $_ } }
+    finally { $ErrorActionPreference = $prev }
     return $LASTEXITCODE
 }
 
@@ -221,7 +228,8 @@ function Install-App {
     & (ServiceExe) start | Out-Null
     Start-Sleep -Seconds 2
 
-    Good "Installation terminee. La surveillance tourne en arriere-plan."
+    # Le demarrage est annonce APRES coup : l'etat affiche par Start-Monitoring fait foi.
+    Good "Installation terminee."
     Start-Monitoring
     Open-Gui
     Info "Vous pouvez fermer cette fenetre et utiliser l'ordinateur normalement."
@@ -229,13 +237,15 @@ function Install-App {
 
 function Start-Monitoring {
     Info "Demarrage de la surveillance..."
-    Invoke-Cli @('start') | Out-Null
+    $rc = Invoke-Cli @('start')
+    if ($rc -ne 0) { Warn2 "La surveillance n'a pas demarre (code $rc). Voir le message ci-dessus." }
     Get-Status
 }
 
 function Stop-Monitoring {
     Info "Arret de la surveillance..."
-    Invoke-Cli @('stop') | Out-Null
+    $rc = Invoke-Cli @('stop')
+    if ($rc -ne 0) { Warn2 "La surveillance ne s'est pas arretee (code $rc). Voir le message ci-dessus." }
     Get-Status
 }
 
