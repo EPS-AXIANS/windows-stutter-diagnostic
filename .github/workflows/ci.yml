@@ -1,6 +1,5 @@
 # GitHub Actions CI for Windows Stutter Diagnostic.
-# This file is a copy of build/ci.yml, placed where GitHub Actions will actually run it.
-# Keep the two in sync.
+# This is the only copy; there is nothing to keep in sync.
 name: ci
 
 on:
@@ -33,6 +32,26 @@ jobs:
         with:
           name: test-results
           path: '**/TestResults/**'
+
+  # The deploy pack has no unit tests and only runs on the operator's machine, so it is where
+  # bugs have actually shipped. These checks are static and cheap.
+  scripts:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Run under Windows PowerShell 5.1 on purpose: it is what Lancer-StutterDiag.bat uses,
+      # and its encoding rules are what the check is about.
+      - name: Validate .ps1 encoding and syntax (Windows PowerShell 5.1)
+        shell: powershell
+        run: .\build\check-scripts.ps1
+
+      - name: Verify code formatting
+        run: dotnet format StutterDiag.sln --verify-no-changes
 
   portable:
     needs: build-test
