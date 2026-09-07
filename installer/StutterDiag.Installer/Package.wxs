@@ -6,8 +6,8 @@
              for the exact `dotnet publish ... -o publish\{service|gui|cli}` commands).
   Docs     : taken straight from the repo tree ($(var.DocsDir)), so they are always present.
   Service  : name "StutterDiag.Service", display name "Windows Stutter Diagnostic Service".
-             Start="demand" by default; ticking the AUTOSTART checkbox (or `msiexec ... AUTOSTART=1`)
-             flips the SCM start type to Automatic (delayed) via a registry write.
+             Start="demand" by default; `msiexec /i StutterDiag.msi AUTOSTART=1` flips the SCM
+             start type to Automatic (delayed) via a registry write.
   Upgrade  : MajorUpgrade + a fixed UpgradeCode; component GUIDs are auto (Guid="*").
 -->
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
@@ -27,7 +27,7 @@
 
     <Launch Condition="VersionNT64" Message="[ProductName] requires 64-bit Windows." />
 
-    <!-- Public + secured so it survives the elevation hand-off and can be set from the UI or the command line. -->
+    <!-- Public + secured so it survives the elevation hand-off when set on the command line. -->
     <Property Id="AUTOSTART" Value="0" Secure="yes" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
@@ -53,8 +53,8 @@
       <ComponentGroupRef Id="DocFiles" />
     </Feature>
 
-    <!-- AUTOSTART ticked: turn the SCM start type to 2 (Automatic) and mark it delayed.
-         Unticked: ServiceInstall's Start="demand" stands. -->
+    <!-- AUTOSTART=1: turn the SCM start type to 2 (Automatic) and mark it delayed.
+         Otherwise ServiceInstall's Start="demand" stands. -->
     <Component Id="AutostartRegistry" Directory="INSTALLFOLDER" Guid="*" Condition="AUTOSTART = &quot;1&quot;">
       <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\StutterDiag.Service"
                      Name="Start" Type="integer" Value="2" KeyPath="yes" />
@@ -70,16 +70,12 @@
     </Component>
 <?endif ?>
 
-    <!-- Minimal WixUI + a "start automatically" checkbox merged onto the install-directory page. -->
+    <!-- Minimal WixUI. AUTOSTART deliberately has no checkbox: a control cannot be added to a
+         standard WixUI dialog, because redeclaring InstallDirDlg here duplicates the symbol the
+         WixUI_InstallDir wixlib already owns (WIX0091). Set it on the command line instead:
+         msiexec /i StutterDiag.msi AUTOSTART=1 -->
     <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
     <UIRef Id="WixUI_ErrorProgressText" />
-    <UI>
-      <Dialog Id="InstallDirDlg">
-        <Control Id="AutostartCheckBox" Type="CheckBox" X="20" Y="178" Width="300" Height="17"
-                 Property="AUTOSTART" CheckBoxValue="1"
-                 Text="Start the StutterDiag service automatically with Windows (delayed start)" />
-      </Dialog>
-    </UI>
 
   </Package>
 

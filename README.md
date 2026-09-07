@@ -115,8 +115,7 @@ skeleton MSI in that case.)
 
 The MSI installs the GUI + CLI, registers **`StutterDiag.Service`** (display name
 "Windows Stutter Diagnostic Service") as a Windows service — `Start=demand` by default, or
-Automatic (delayed) if you tick **"Start the StutterDiag service automatically with Windows"** on
-the install-directory page (equivalently `msiexec /i StutterDiag.msi AUTOSTART=1`). It adds a
+Automatic (delayed) when installed with `msiexec /i StutterDiag.msi AUTOSTART=1`. It adds a
 Start-menu shortcut for the GUI. Uninstall stops and removes the service. Collected data in
 `%ProgramData%\StutterDiag` is left in place.
 
