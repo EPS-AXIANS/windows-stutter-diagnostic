@@ -7,7 +7,7 @@ Deux scénarios selon qui a une machine Windows avec le SDK.
 | Quand | tu as accès à un Windows + .NET 8 SDK | tu es sur Linux / sans Windows |
 | Elle reçoit | un zip clé-en-main (aucun build) | le **code source** (zip ou repo) |
 | Elle lance | `Lancer-StutterDiag.bat` → `1` | `Build-Windows.bat`, puis boucle d'erreurs |
-| Fichiers pour elle | `LISEZ-MOI.txt` | `LISEZ-MOI-COMPILATION.txt` |
+| Fichiers pour elle | `LISEZ-MOI.txt` | `GUIDE-PAS-A-PAS.txt` |
 
 Le code **n'a jamais été compilé** : la première compilation échoue presque
 toujours. Voir [`../docs/INTEGRATION-NOTES.md`](../docs/INTEGRATION-NOTES.md).
@@ -99,7 +99,7 @@ aux redémarrages. `StutterDiag.ps1` accepte les mêmes actions en direct :
 | `StutterDiag.ps1` | toute la logique de gestion (auto-élévation) | — |
 | `publish-release.ps1` | build portable → pack → release GitHub | toi (scénario A) |
 | `LISEZ-MOI.txt` | 3 étapes, pack pré-compilé | opérateur (scénario A) |
-| `LISEZ-MOI-COMPILATION.txt` | étapes + boucle d'erreurs | opérateur (scénario B) |
+| `GUIDE-PAS-A-PAS.txt` | étapes + boucle d'erreurs | opérateur (scénario B) |
 
 ---
 

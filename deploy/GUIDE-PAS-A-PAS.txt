@@ -1,0 +1,171 @@
+====================================================================
+  WINDOWS STUTTER DIAGNOSTIC  -  GUIDE PAS A PAS
+====================================================================
+
+But : installer un petit programme qui tourne en fond et enregistre les
+micro-ralentissements de l'ordinateur, pour les analyser ensuite.
+
+Ce qu'il te faut :
+  - le fichier  windows-stutter-diagnostic-src.zip  (recu par message/mail)
+  - une connexion Internet
+  - environ 20 a 30 minutes la premiere fois
+  - tu n'as PAS besoin du mot de passe administrateur pour la compilation ;
+    une seule fenetre te le demandera peut-etre a la toute fin (repondre Oui).
+
+Rien n'est envoye sur Internet par le programme. Tout reste sur le PC.
+
+
+====================================================================
+  PARTIE 1  -  INSTALLER
+====================================================================
+
+ETAPE 1 : Extraire le fichier recu
+----------------------------------
+ 1. Mets le fichier  windows-stutter-diagnostic-src.zip  sur le Bureau.
+ 2. Clic DROIT dessus  ->  "Extraire tout..."
+ 3. Dans la fenetre, clique "Extraire".
+ 4. Un dossier  windows-stutter-diagnostic  s'ouvre.
+    (S'il ne s'ouvre pas tout seul, ouvre-le en double-cliquant.)
+
+    IMPORTANT : il faut travailler dans le dossier EXTRAIT, pas dans
+    l'apercu du zip. Si le chemin en haut de la fenetre contient ".zip",
+    c'est que tu es encore dans le zip : ferme et ouvre le vrai dossier.
+
+
+ETAPE 2 : Lancer la compilation
+-------------------------------
+ 1. Dans le dossier  windows-stutter-diagnostic , ouvre le sous-dossier
+    nomme  deploy .
+ 2. Double-clique sur le fichier  Build-Windows.bat
+    (icone d'engrenage ou de fenetre noire ; le nom peut s'afficher
+     simplement "Build-Windows").
+
+ 3. SI une fenetre bleue apparait : "Windows a protege votre ordinateur"
+       -> clique sur "Informations complementaires"
+       -> puis sur le bouton "Executer quand meme"
+    (C'est normal : le fichier vient d'etre recu, Windows est prudent.)
+
+ 4. Une fenetre noire (ou bleu fonce) s'ouvre avec du texte qui defile.
+    Laisse-la travailler. Ne la ferme pas.
+    Elle va :
+      - telecharger et installer les outils necessaires (quelques minutes) ;
+      - compiler le programme (5 a 15 minutes ; c'est normal que ce soit long).
+
+ 5. Au bout d'un moment, la fenetre affiche SOIT :
+       "LA COMPILATION A ECHOUE"   ->  va au CAS A ci-dessous
+    SOIT :
+       "TERMINE"                    ->  va au CAS B ci-dessous
+
+
+--------------------------------------------------------------------
+  CAS A  -  "LA COMPILATION A ECHOUE"   (frequent au 1er essai, c'est prevu)
+--------------------------------------------------------------------
+ 1. Deux fichiers sont apparus dans le dossier  deploy  :
+       build-errors.txt     (petit)
+       build-log.txt        (gros)
+    Le Bloc-notes s'ouvre automatiquement sur le premier.
+
+ 2. ENVOIE CES DEUX FICHIERS a la personne qui te guide
+    (glisse-les dans le mail / le message, comme des pieces jointes).
+
+ 3. Attends sa reponse : elle va corriger et te dire "c'est bon, relance".
+
+ 4. QUAND ELLE TE LE DIT :
+      - si elle t'a renvoye un NOUVEAU  windows-stutter-diagnostic-src.zip :
+          extrais-le a nouveau sur le Bureau, en ACCEPTANT de remplacer
+          les fichiers existants, puis retourne a l'ETAPE 2.
+      - si elle te dit juste "relance" (cas ou Git est installe) :
+          rouvre  deploy  et double-clique de nouveau  Build-Windows.bat .
+
+ 5. Repete jusqu'a obtenir "TERMINE". Compte 2 a 4 essais en general.
+
+
+--------------------------------------------------------------------
+  CAS B  -  "TERMINE"
+--------------------------------------------------------------------
+ 1. Une fenetre de securite Windows apparait (fond bleu/jaune,
+    "Voulez-vous autoriser cette application a apporter des modifications")
+       -> clique "Oui".
+    (Si elle demande un mot de passe administrateur et que tu ne l'as pas,
+     note-le et previens la personne qui te guide.)
+
+ 2. Une nouvelle petite fenetre fait l'installation du service, puis
+    l'interface du programme s'ouvre.
+
+ 3. C'est fini. Tu peux fermer les fenetres noires.
+    L'ordinateur s'utilise NORMALEMENT. Le programme surveille en fond,
+    meme interface fermee, meme apres un redemarrage.
+
+
+====================================================================
+  PARTIE 2  -  VERIFIER QUE CA TOURNE (facultatif)
+====================================================================
+ 1. Ouvre le dossier  deploy .
+ 2. Double-clique  Lancer-StutterDiag.bat   ->  "Oui" a la fenetre Windows.
+ 3. Dans le menu, tape le chiffre  2  puis Entree.
+ 4. Tu dois voir une ligne du genre  "Monitoring: yes"  ou un compteur.
+ 5. Tape  0  puis Entree pour quitter.
+
+
+====================================================================
+  PARTIE 3  -  GENERER UN RAPPORT  (quand on te le demande)
+====================================================================
+ 1. Ouvre le dossier  deploy .
+ 2. Double-clique  Lancer-StutterDiag.bat   ->  "Oui".
+ 3. Tape le chiffre  5  puis Entree.
+ 4. Attends. Un fichier  StutterDiag-rapport-AAAAMMJJ-....html  apparait
+    sur le Bureau et s'ouvre dans le navigateur.
+ 5. Envoie ce fichier .html a la personne qui te guide.
+ 6. Tape  0  puis Entree pour quitter.
+
+Tu peux generer un rapport autant de fois que tu veux ; laisse le
+programme tourner plusieurs heures (ou jours) entre deux, pour qu'il
+ait des choses a montrer.
+
+
+====================================================================
+  PARTIE 4  -  METTRE EN PAUSE / REPRENDRE / DESINSTALLER
+====================================================================
+Menu de  Lancer-StutterDiag.bat  :
+   1  = (re)installer ou mettre a jour
+   2  = voir l'etat
+   3  = reprendre la surveillance
+   4  = mettre la surveillance en pause
+   5  = generer un rapport HTML sur le Bureau
+   6  = rouvrir l'interface
+   7  = tout desinstaller (le programme et le service)
+   0  = quitter la fenetre
+
+
+====================================================================
+  PROBLEMES FREQUENTS
+====================================================================
+- "Windows a protege votre ordinateur" (fenetre bleue) :
+     "Informations complementaires"  ->  "Executer quand meme".
+
+- Un antivirus bloque ou met en quarantaine un fichier :
+     autorise/restaure le fichier, ou mets le dossier
+     windows-stutter-diagnostic en exception, puis relance.
+
+- "dotnet n'est pas reconnu" ou erreur de telechargement :
+     verifie la connexion Internet et relance  Build-Windows.bat .
+
+- La fenetre noire se ferme tout de suite sans rien afficher :
+     ouvre le dossier  deploy , clic DROIT sur  Build-Windows.bat ,
+     "Executer en tant qu'administrateur", et fais une photo de l'ecran.
+
+- Rien ne se passe / message rouge :
+     fais une PHOTO de la fenetre + envoie les fichiers
+        deploy\build-errors.txt
+        deploy\build-log.txt
+        C:\StutterDiag\deploy.log   (s'il existe)
+
+
+====================================================================
+  EN RESUME
+====================================================================
+  1. Extraire le zip sur le Bureau.
+  2. deploy \ Build-Windows.bat  ->  "Executer quand meme"  ->  attendre.
+  3. "ECHEC" -> envoyer build-errors.txt + build-log.txt -> attendre -> relancer.
+  4. "TERMINE" -> "Oui" a la fenetre Windows -> c'est installe.
+  5. Rapport : deploy \ Lancer-StutterDiag.bat  ->  touche  5  -> envoyer le .html.
