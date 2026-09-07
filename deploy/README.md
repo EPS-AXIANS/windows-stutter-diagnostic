@@ -1,85 +1,115 @@
-# Déploiement clé-en-main
+# Déploiement
 
-Deux rôles : **toi** (tu prépares le pack une fois), **la personne distante** (elle clique).
+Deux scénarios selon qui a une machine Windows avec le SDK.
+
+| | Scénario A — **tu** compiles | Scénario B — **elle** compile |
+|---|---|---|
+| Quand | tu as accès à un Windows + .NET 8 SDK | tu es sur Linux / sans Windows |
+| Elle reçoit | un zip clé-en-main (aucun build) | le **code source** (zip ou repo) |
+| Elle lance | `Lancer-StutterDiag.bat` → `1` | `Build-Windows.bat`, puis boucle d'erreurs |
+| Fichiers pour elle | `LISEZ-MOI.txt` | `LISEZ-MOI-COMPILATION.txt` |
+
+Le code **n'a jamais été compilé** : la première compilation échoue presque
+toujours. Voir [`../docs/INTEGRATION-NOTES.md`](../docs/INTEGRATION-NOTES.md).
 
 ---
 
-## Toi — préparer le pack (une seule fois, sur Windows + .NET 8 SDK)
+## Scénario B — elle compile (ton cas)
 
-Prérequis : la solution doit **compiler**. Première passe à faire en suivant
-[`../docs/INTEGRATION-NOTES.md`](../docs/INTEGRATION-NOTES.md) (rien n'a encore été compilé).
+### Ce que tu lui envoies
+Le dépôt complet. Soit :
+- un **zip du code source** (`git archive --format=zip -o src.zip HEAD`, ou l'export
+  GitHub → *Code ▸ Download ZIP* si le repo est rendu public), extrait chez elle ;
+- soit tu la fais `gh auth login` / `git clone` (repo privé → il lui faut un accès).
+
+Le dossier `deploy/` est déjà dedans.
+
+### Ce qu'elle fait
+1. Double-clic sur **`deploy/Build-Windows.bat`**.
+2. Le script :
+   - installe le **SDK .NET 8 dans son profil** (sans droits admin) s'il manque ;
+   - fait `git pull` si c'est un dépôt ;
+   - `dotnet build StutterDiag.sln -c Release`, sortie tee-ée dans `build-log.txt`.
+3. **Échec** → il écrit `deploy/build-errors.txt` (liste courte des `error CSxxxx`)
+   + `deploy/build-log.txt`, ouvre le premier dans le Bloc-notes, et s'arrête.
+   → elle t'envoie **`build-errors.txt`** (petit, colle-le moi tel quel).
+4. Toi → tu corriges, `git commit && git push`.
+5. Elle relance `Build-Windows.bat` (il refait `git pull` tout seul). Boucle
+   jusqu'à **succès** — compte 2 à 4 tours.
+6. **Succès** → il fabrique le pack (`artifacts/StutterDiag-Setup-*.zip`) **et**
+   installe le service sur ce PC (une invite UAC, `-Wait` : le script attend la fin).
+
+Ensuite, gestion courante via `deploy/Lancer-StutterDiag.bat` (menu FR ci-dessous).
+
+### Piloter à distance sans le menu (lignes uniques à lui dicter)
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy\Build-Windows.ps1            # compiler + installer
+powershell -ExecutionPolicy Bypass -File deploy\Build-Windows.ps1 -NoInstall # compiler seulement
+powershell -ExecutionPolicy Bypass -File deploy\StutterDiag.ps1 -Action status
+powershell -ExecutionPolicy Bypass -File deploy\StutterDiag.ps1 -Action report
+powershell -ExecutionPolicy Bypass -File deploy\StutterDiag.ps1 -Action uninstall -RemoveData
+```
+
+---
+
+## Scénario A — tu compiles, elle installe seulement
+
+Sur ta machine Windows + .NET 8 SDK, une fois que ça compile :
 
 ```powershell
-# à la racine du dépôt
-dotnet build StutterDiag.sln -c Release      # jusqu'à ce que ce soit vert
-dotnet test  StutterDiag.sln -c Release
-
-# fabrique le pack : artifacts\StutterDiag-Setup-<version>.zip
-.\deploy\publish-release.ps1
-
-# …et, en option, publie-le comme release GitHub (téléchargeable par lien) :
-.\deploy\publish-release.ps1 -Release
+dotnet build StutterDiag.sln -c Release
+.\deploy\publish-release.ps1            # -> artifacts\StutterDiag-Setup-<version>.zip
+.\deploy\publish-release.ps1 -Release   # (option) attache le zip a la release GitHub
 ```
 
-Le pack `StutterDiag-Setup-<version>.zip` contient :
+Le zip contient l'appli (build portable *self-contained*, **aucun runtime** à
+installer chez elle) + les scripts + `LISEZ-MOI.txt`. Tu lui envoies ce seul zip.
 
-```
-Lancer-StutterDiag.bat     ← elle double-clique là-dessus
-StutterDiag.ps1            ← toute la logique (auto-élévation, menu FR)
-LISEZ-MOI.txt              ← ses instructions, 3 étapes
-app\                      ← build portable self-contained (Service + GUI + CLI,
-                            AUCUN runtime .NET à installer sur sa machine)
-```
-
-Envoie-lui **ce seul fichier zip** (mail, WeTransfer, partage, lien de release…).
+Elle : clic droit → *Extraire tout* → double-clic **`Lancer-StutterDiag.bat`** →
+*Oui* → taper **`1`**. Terminé.
 
 ---
 
-## Elle — installer (≈ 3 min, aucune compétence requise)
+## Le menu (`Lancer-StutterDiag.bat`)
 
-1. Clic droit sur le zip → **Extraire tout…**
-2. Ouvrir le dossier → double-clic sur **`Lancer-StutterDiag.bat`**
-3. Fenêtre de sécurité Windows → **Oui**
-4. Dans le menu, taper **`1`** puis Entrée → *Installer et démarrer*
-5. Message « Installation terminée » → c'est fait. L'ordi s'utilise normalement.
+```
+1  Installer / mettre a jour et demarrer
+2  Voir l'etat
+3  Demarrer la surveillance
+4  Arreter la surveillance
+5  Generer un rapport HTML (sur le Bureau)  <- a t'envoyer
+6  Ouvrir l'interface
+7  Desinstaller le service
+0  Quitter
+```
 
-La surveillance tourne en service Windows : elle survit à la fermeture de
-l'interface et aux redémarrages.
-
-### Récupérer un rapport
-Relancer `Lancer-StutterDiag.bat` → taper **`5`**. Le fichier
-`StutterDiag-rapport-*.html` apparaît sur le Bureau ; elle te l'envoie.
-
-### Autres touches du menu
-`2` état · `3` (re)démarrer · `4` pause · `6` rouvrir l'interface · `7` désinstaller · `0` quitter
+Le service tourne en arrière-plan : il survit à la fermeture de l'interface et
+aux redémarrages. `StutterDiag.ps1` accepte les mêmes actions en direct :
+`-Action install|update|start|stop|status|report|gui|uninstall`
+(`-InstallDir`, `-PackageZip`, `-PackageUrl`, `-RemoveData` en options).
 
 ---
 
-## Piloter à distance sans le menu
+## Fichiers de ce dossier
 
-`StutterDiag.ps1` accepte aussi une action directe (utile si tu lui fais copier-coller
-une ligne unique) :
-
-```powershell
-powershell -ExecutionPolicy Bypass -File StutterDiag.ps1 -Action install
-powershell -ExecutionPolicy Bypass -File StutterDiag.ps1 -Action status
-powershell -ExecutionPolicy Bypass -File StutterDiag.ps1 -Action report
-powershell -ExecutionPolicy Bypass -File StutterDiag.ps1 -Action uninstall -RemoveData
-```
-
-Options : `-InstallDir <chemin>` (défaut `C:\StutterDiag`), `-PackageUrl <lien>`
-ou `-PackageZip <chemin>` si l'app n'est pas dans le dossier `app\`.
+| Fichier | Rôle | Pour qui |
+|---|---|---|
+| `Build-Windows.bat` / `.ps1` | installe le SDK, compile, fabrique le pack, installe le service | opérateur (scénario B) |
+| `Lancer-StutterDiag.bat` | menu FR de gestion (install/rapport/etc.) | opérateur |
+| `StutterDiag.ps1` | toute la logique de gestion (auto-élévation) | — |
+| `publish-release.ps1` | build portable → pack → release GitHub | toi (scénario A) |
+| `LISEZ-MOI.txt` | 3 étapes, pack pré-compilé | opérateur (scénario A) |
+| `LISEZ-MOI-COMPILATION.txt` | étapes + boucle d'erreurs | opérateur (scénario B) |
 
 ---
 
 ## Notes
 
-- **Admin :** demandé **une seule fois**, pour enregistrer le service. L'interface, elle,
-  se lance sans élévation (le script la démarre via `explorer.exe`).
-- **Sans admin du tout :** l'appli tourne quand même mais la session ETW noyau est
-  désactivée (pas de latence DPC/ISR ni d'I/O disque par requête) ; l'interface le signale.
-- **Données :** tout reste en local dans `C:\ProgramData\StutterDiag`. Aucune télémétrie.
-- **Journal du script :** `C:\StutterDiag\deploy.log`.
-- Repo privé : le téléchargement automatique depuis la release GitHub ne marche que si
-  le repo est public **ou** si `gh` est installé et connecté sur sa machine. Le cas normal
-  (dossier `app\` fourni dans le pack) ne touche pas au réseau.
+- **Admin :** demandé **une seule fois**, pour enregistrer le service. La compilation
+  et l'installation du SDK se font sans admin (profil utilisateur). L'interface se
+  lance sans élévation (`explorer.exe`).
+- **Sans admin du tout :** l'appli tourne quand même mais sans la session ETW noyau
+  (pas de latence DPC/ISR ni d'I/O disque par requête) ; l'interface le signale.
+- **Données :** local uniquement, `C:\ProgramData\StutterDiag`. Aucune télémétrie.
+- **Journaux :** `deploy\build-log.txt` (compilation), `C:\StutterDiag\deploy.log`
+  (installation/gestion).

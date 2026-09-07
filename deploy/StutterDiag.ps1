@@ -59,8 +59,9 @@ function Assert-Admin {
     if ($PackageZip) { $a += @('-PackageZip', ('"{0}"' -f $PackageZip)) }
     if ($PackageUrl) { $a += @('-PackageUrl', ('"{0}"' -f $PackageUrl)) }
     if ($RemoveData) { $a += '-RemoveData' }
-    Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $a
-    exit 0
+    # -Wait : le processus appelant (ex. Build-Windows.ps1) bloque jusqu'a la fin de l'installation.
+    $proc = Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $a -Wait -PassThru
+    exit $proc.ExitCode
 }
 
 # ---------------------------------------------------- localisation de l'app

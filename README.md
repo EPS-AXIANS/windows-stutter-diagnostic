@@ -120,12 +120,16 @@ the install-directory page (equivalently `msiexec /i StutterDiag.msi AUTOSTART=1
 Start-menu shortcut for the GUI. Uninstall stops and removes the service. Collected data in
 `%ProgramData%\StutterDiag` is left in place.
 
-### Turn-key pack for a non-technical operator
+### Deploying to a non-technical operator ([`deploy/`](deploy/README.md))
 
-[`deploy/`](deploy/) builds a single self-contained zip that a remote person just extracts and
-double-clicks — no SDK, no git, no command line, one UAC prompt, a French menu. You run
-`deploy/publish-release.ps1` once (optionally `-Release` to attach it to the GitHub release);
-they run `Lancer-StutterDiag.bat` and press `1`. See [`deploy/README.md`](deploy/README.md).
+- **You have a Windows + SDK box:** `deploy/publish-release.ps1` builds one self-contained zip
+  they just extract and double-click — no SDK, no git, one UAC prompt, a French menu
+  (`Lancer-StutterDiag.bat` → `1`).
+- **You're on Linux and the operator must build:** send them the source; they double-click
+  `deploy/Build-Windows.bat`. It installs the .NET 8 SDK into their user profile (no admin),
+  compiles, and on success builds the pack and registers the service. On failure it writes
+  `deploy/build-errors.txt` for them to send back — expect 2–4 rounds of fix/push/re-run since
+  the tree is not yet compiler-verified.
 
 ---
 
