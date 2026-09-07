@@ -7,10 +7,10 @@ public static class ConfigValidator
     {
         var w = new List<string>();
 
-        Clamp(ref c.StutterThresholds.MicroStutterMs, 5, 5000, "StutterThresholds.MicroStutterMs", w);
-        Clamp(ref c.StutterThresholds.MajorMs, 10, 10000, "StutterThresholds.MajorMs", w);
-        Clamp(ref c.StutterThresholds.SevereMs, 20, 20000, "StutterThresholds.SevereMs", w);
-        Clamp(ref c.StutterThresholds.CriticalMs, 50, 60000, "StutterThresholds.CriticalMs", w);
+        c.StutterThresholds.MicroStutterMs = Clamp(c.StutterThresholds.MicroStutterMs, 5, 5000, "StutterThresholds.MicroStutterMs", w);
+        c.StutterThresholds.MajorMs = Clamp(c.StutterThresholds.MajorMs, 10, 10000, "StutterThresholds.MajorMs", w);
+        c.StutterThresholds.SevereMs = Clamp(c.StutterThresholds.SevereMs, 20, 20000, "StutterThresholds.SevereMs", w);
+        c.StutterThresholds.CriticalMs = Clamp(c.StutterThresholds.CriticalMs, 50, 60000, "StutterThresholds.CriticalMs", w);
 
         if (!(c.StutterThresholds.MicroStutterMs < c.StutterThresholds.MajorMs
               && c.StutterThresholds.MajorMs < c.StutterThresholds.SevereMs
@@ -20,33 +20,33 @@ public static class ConfigValidator
             c.StutterThresholds = new StutterThresholdOptions();
         }
 
-        Clamp(ref c.Correlation.PreRollSeconds, 0.5, 60, "Correlation.PreRollSeconds", w);
-        Clamp(ref c.Correlation.PostRollSeconds, 0.5, 60, "Correlation.PostRollSeconds", w);
-        Clamp(ref c.Correlation.HighProximityMs, 1, 1000, "Correlation.HighProximityMs", w);
-        Clamp(ref c.Correlation.MediumProximityMs, 10, 5000, "Correlation.MediumProximityMs", w);
-        Clamp(ref c.Correlation.BaselineWindowMinutes, 1, 240, "Correlation.BaselineWindowMinutes", w);
-        Clamp(ref c.Correlation.MadK, 1.0, 20.0, "Correlation.MadK", w);
-        Clamp(ref c.Correlation.BaseRateWindowSeconds, 1, 120, "Correlation.BaseRateWindowSeconds", w);
+        c.Correlation.PreRollSeconds = Clamp(c.Correlation.PreRollSeconds, 0.5, 60, "Correlation.PreRollSeconds", w);
+        c.Correlation.PostRollSeconds = Clamp(c.Correlation.PostRollSeconds, 0.5, 60, "Correlation.PostRollSeconds", w);
+        c.Correlation.HighProximityMs = Clamp(c.Correlation.HighProximityMs, 1, 1000, "Correlation.HighProximityMs", w);
+        c.Correlation.MediumProximityMs = Clamp(c.Correlation.MediumProximityMs, 10, 5000, "Correlation.MediumProximityMs", w);
+        c.Correlation.BaselineWindowMinutes = Clamp(c.Correlation.BaselineWindowMinutes, 1, 240, "Correlation.BaselineWindowMinutes", w);
+        c.Correlation.MadK = Clamp(c.Correlation.MadK, 1.0, 20.0, "Correlation.MadK", w);
+        c.Correlation.BaseRateWindowSeconds = Clamp(c.Correlation.BaseRateWindowSeconds, 1, 120, "Correlation.BaseRateWindowSeconds", w);
 
-        ClampInt(ref c.Heartbeat.ProbeIntervalMs, 1, 100, "Heartbeat.ProbeIntervalMs", w);
-        ClampInt(ref c.Heartbeat.ProbeCount, 1, 8, "Heartbeat.ProbeCount", w);
-        ClampInt(ref c.Heartbeat.TimerResolutionMs, 1, 16, "Heartbeat.TimerResolutionMs", w);
-        ClampInt(ref c.Heartbeat.AggregateWindowMs, 1, 200, "Heartbeat.AggregateWindowMs", w);
-        Clamp(ref c.Heartbeat.MinReportMs, 5, 2000, "Heartbeat.MinReportMs", w);
+        c.Heartbeat.ProbeIntervalMs = ClampInt(c.Heartbeat.ProbeIntervalMs, 1, 100, "Heartbeat.ProbeIntervalMs", w);
+        c.Heartbeat.ProbeCount = ClampInt(c.Heartbeat.ProbeCount, 1, 8, "Heartbeat.ProbeCount", w);
+        c.Heartbeat.TimerResolutionMs = ClampInt(c.Heartbeat.TimerResolutionMs, 1, 16, "Heartbeat.TimerResolutionMs", w);
+        c.Heartbeat.AggregateWindowMs = ClampInt(c.Heartbeat.AggregateWindowMs, 1, 200, "Heartbeat.AggregateWindowMs", w);
+        c.Heartbeat.MinReportMs = Clamp(c.Heartbeat.MinReportMs, 5, 2000, "Heartbeat.MinReportMs", w);
 
-        Clamp(ref c.HighRes.WindowSeconds, 1, 120, "HighRes.WindowSeconds", w);
-        Clamp(ref c.HighRes.RingBufferSeconds, 10, 600, "HighRes.RingBufferSeconds", w);
+        c.HighRes.WindowSeconds = Clamp(c.HighRes.WindowSeconds, 1, 120, "HighRes.WindowSeconds", w);
+        c.HighRes.RingBufferSeconds = Clamp(c.HighRes.RingBufferSeconds, 10, 600, "HighRes.RingBufferSeconds", w);
 
-        ClampInt(ref c.Etw.BufferSizeKb, 32, 1024, "Etw.BufferSizeKb", w);
-        ClampInt(ref c.Etw.BufferCount, 4, 512, "Etw.BufferCount", w);
-        Clamp(ref c.Etw.FlushSeconds, 0.25, 10, "Etw.FlushSeconds", w);
+        c.Etw.BufferSizeKb = ClampInt(c.Etw.BufferSizeKb, 32, 1024, "Etw.BufferSizeKb", w);
+        c.Etw.BufferCount = ClampInt(c.Etw.BufferCount, 4, 512, "Etw.BufferCount", w);
+        c.Etw.FlushSeconds = Clamp(c.Etw.FlushSeconds, 0.25, 10, "Etw.FlushSeconds", w);
 
-        Clamp(ref c.Sampling.PerfCounterHz, 0.2, 10, "Sampling.PerfCounterHz", w);
-        Clamp(ref c.Sampling.ProcessSnapshotSeconds, 0.5, 60, "Sampling.ProcessSnapshotSeconds", w);
-        ClampInt(ref c.Sampling.TopProcessCount, 3, 200, "Sampling.TopProcessCount", w);
+        c.Sampling.PerfCounterHz = Clamp(c.Sampling.PerfCounterHz, 0.2, 10, "Sampling.PerfCounterHz", w);
+        c.Sampling.ProcessSnapshotSeconds = Clamp(c.Sampling.ProcessSnapshotSeconds, 0.5, 60, "Sampling.ProcessSnapshotSeconds", w);
+        c.Sampling.TopProcessCount = ClampInt(c.Sampling.TopProcessCount, 3, 200, "Sampling.TopProcessCount", w);
 
-        ClampInt(ref c.Retention.Days, 1, 3650, "Retention.Days", w);
-        ClampInt(ref c.Retention.MaxDbSizeMb, 64, 262144, "Retention.MaxDbSizeMb", w);
+        c.Retention.Days = ClampInt(c.Retention.Days, 1, 3650, "Retention.Days", w);
+        c.Retention.MaxDbSizeMb = ClampInt(c.Retention.MaxDbSizeMb, 64, 262144, "Retention.MaxDbSizeMb", w);
 
         if (string.IsNullOrWhiteSpace(c.Service.IpcPipeName))
         {
@@ -57,15 +57,18 @@ public static class ConfigValidator
         return w;
     }
 
-    private static void Clamp(ref double v, double lo, double hi, string name, List<string> w)
+    // Config members are properties, so these return the clamped value instead of taking `ref`.
+    private static double Clamp(double v, double lo, double hi, string name, List<string> w)
     {
-        if (v < lo) { w.Add($"{name} {v} < {lo}; clamped."); v = lo; }
-        else if (v > hi) { w.Add($"{name} {v} > {hi}; clamped."); v = hi; }
+        if (v < lo) { w.Add($"{name} {v} < {lo}; clamped."); return lo; }
+        if (v > hi) { w.Add($"{name} {v} > {hi}; clamped."); return hi; }
+        return v;
     }
 
-    private static void ClampInt(ref int v, int lo, int hi, string name, List<string> w)
+    private static int ClampInt(int v, int lo, int hi, string name, List<string> w)
     {
-        if (v < lo) { w.Add($"{name} {v} < {lo}; clamped."); v = lo; }
-        else if (v > hi) { w.Add($"{name} {v} > {hi}; clamped."); v = hi; }
+        if (v < lo) { w.Add($"{name} {v} < {lo}; clamped."); return lo; }
+        if (v > hi) { w.Add($"{name} {v} > {hi}; clamped."); return hi; }
+        return v;
     }
 }
