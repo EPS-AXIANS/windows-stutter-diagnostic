@@ -44,7 +44,7 @@ drivers, DPC/ISR, WHEA, power-state changes, disk latency, etc.
 | Event Log | `System.Diagnostics.Eventing.Reader` (`EventLogWatcher`, push) |
 | Report HTML | `Scriban` templating + a **zero-dependency** inline `<canvas>` timeline. No CDN, no external JS/CSS. |
 | GUI | WPF, `CommunityToolkit.Mvvm`, `Hardcodet.NotifyIcon.Wpf` for the tray icon. Charts are custom-drawn (no chart lib). |
-| Installer | WiX v4 MSI + a `dotnet publish` self-contained portable ZIP |
+| Installer | WiX v5 MSI + a `dotnet publish` self-contained portable ZIP |
 | Tests | xUnit + FluentAssertions (pinned 6.12.2) + NSubstitute |
 
 Package versions are centralized in `Directory.Packages.props`. **Do not put
@@ -89,7 +89,7 @@ tests/
   StutterDiag.Monitors.Tests
   StutterDiag.Reporting.Tests
 installer/
-  StutterDiag.Installer    WiX v4 .wixproj
+  StutterDiag.Installer    WiX v5 .wixproj
 ```
 
 **Dependency direction (never violate):**

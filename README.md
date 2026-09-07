@@ -75,7 +75,7 @@ Elevation matrix: [`docs/PERMISSIONS.md`](docs/PERMISSIONS.md).
 ## Build
 
 **Prerequisites:** Windows 10/11 x64 and the [.NET 8 SDK](https://dotnet.microsoft.com/download).
-The MSI uses the [WiX v4](https://wixtoolset.org/) MSBuild SDK, which `dotnet` restores from NuGet
+The MSI uses the [WiX v5](https://wixtoolset.org/) MSBuild SDK, which `dotnet` restores from NuGet
 automatically — no global `wix` tool required.
 
 ```powershell
@@ -101,7 +101,7 @@ performance counters and event-log watchers. The UI states which sensors are deg
 
 ### Installer (MSI)
 
-Publish the three executables, then build the MSI (WiX v4, per-machine, x64):
+Publish the three executables, then build the MSI (WiX v5, per-machine, x64):
 
 ```powershell
 dotnet publish src/StutterDiag.Service/StutterDiag.Service.csproj -c Release -r win-x64 --self-contained true -o installer/StutterDiag.Installer/publish/service
