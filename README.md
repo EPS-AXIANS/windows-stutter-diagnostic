@@ -120,6 +120,13 @@ the install-directory page (equivalently `msiexec /i StutterDiag.msi AUTOSTART=1
 Start-menu shortcut for the GUI. Uninstall stops and removes the service. Collected data in
 `%ProgramData%\StutterDiag` is left in place.
 
+### Turn-key pack for a non-technical operator
+
+[`deploy/`](deploy/) builds a single self-contained zip that a remote person just extracts and
+double-clicks — no SDK, no git, no command line, one UAC prompt, a French menu. You run
+`deploy/publish-release.ps1` once (optionally `-Release` to attach it to the GitHub release);
+they run `Lancer-StutterDiag.bat` and press `1`. See [`deploy/README.md`](deploy/README.md).
+
 ---
 
 ## Run

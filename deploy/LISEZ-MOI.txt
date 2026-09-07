@@ -1,0 +1,45 @@
+WINDOWS STUTTER DIAGNOSTIC — INSTALLATION
+=========================================
+
+CE QU'IL FAUT FAIRE (3 minutes)
+-------------------------------
+1. Faire un clic droit sur le fichier ZIP recu  ->  "Extraire tout..."
+   (choisir par exemple le Bureau)
+2. Ouvrir le dossier extrait.
+3. Double-cliquer sur :   Lancer-StutterDiag.bat
+4. Une fenetre de securite Windows apparait  ->  cliquer "Oui".
+5. Une fenetre noire avec un menu apparait.
+   Taper le chiffre  1  puis Entree   (Installer et demarrer).
+6. Attendre le message "Installation terminee".
+   L'interface s'ouvre. C'est fini.
+
+L'ordinateur s'utilise ensuite NORMALEMENT : la surveillance tourne
+toute seule en arriere-plan, meme si on ferme l'interface, meme apres
+un redemarrage.
+
+
+POUR RECUPERER UN RAPPORT (quand on le demande)
+-----------------------------------------------
+1. Rouvrir le dossier extrait.
+2. Double-cliquer sur  Lancer-StutterDiag.bat  ->  "Oui".
+3. Taper le chiffre  5  puis Entree.
+4. Un fichier "StutterDiag-rapport-....html" apparait sur le Bureau.
+   L'envoyer (mail / message).
+
+
+AUTRES CHOIX DU MENU
+--------------------
+  2  = voir si la surveillance tourne
+  3  = (re)demarrer la surveillance
+  4  = mettre la surveillance en pause
+  6  = rouvrir l'interface
+  7  = tout desinstaller
+  0  = quitter la fenetre
+
+
+EN CAS DE SOUCI
+---------------
+- Faire une photo/capture de la fenetre et l'envoyer.
+- Le journal complet se trouve dans :   C:\StutterDiag\deploy.log
+- Rien n'est envoye sur Internet. Toutes les donnees restent sur le PC,
+  dans le dossier  C:\ProgramData\StutterDiag .
