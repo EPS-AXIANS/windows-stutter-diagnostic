@@ -37,6 +37,10 @@
     <!-- TraceEvent types are used directly by Ipc/EtwUserFeedAdapter.cs. It also flows
          transitively from StutterDiag.Etw, but the explicit reference keeps intent clear. -->
     <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
+    <!-- Same reasoning: ServiceControl.cs uses ServiceController directly. It arrives via
+         Microsoft.Extensions.Hosting.WindowsServices, so the build would break silently if that
+         package ever dropped the dependency. -->
+    <PackageReference Include="System.ServiceProcess.ServiceController" />
   </ItemGroup>
 
   <ItemGroup>

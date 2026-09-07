@@ -21,8 +21,16 @@ dotnet_diagnostic.CS1591.severity = none
 [*.{xml,csproj,props,targets,wxs,wixproj}]
 indent_size = 2
 
+# end_of_line here must match .gitattributes, which checks these types out as LF while
+# everything else gets CRLF. Without it the [*] crlf default above makes editors rewrite
+# them on save and git normalise them back on commit, for pure diff noise.
 [*.{json,yml,yaml}]
 indent_size = 2
+end_of_line = lf
+
+[*.sbn]
+end_of_line = lf
 
 [*.md]
 trim_trailing_whitespace = false
+end_of_line = lf

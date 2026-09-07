@@ -33,7 +33,9 @@
     <PackageVersion Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
     <PackageVersion Include="System.Diagnostics.EventLog" Version="8.0.1" />
     <PackageVersion Include="System.ServiceProcess.ServiceController" Version="8.0.1" />
-    <PackageVersion Include="System.IO.Pipes.AccessControl" Version="5.0.0" />
+    <!-- System.IO.Pipes.AccessControl is intentionally absent: NamedPipeServerStreamAcl ships in
+         the net8.0-windows framework, so the package resolved to nothing and only risked pulling
+         a 5.0.0 assembly into an 8.0 graph if anyone ever referenced it. -->
 
     <!-- Reporting -->
     <PackageVersion Include="Scriban" Version="7.4.0" />
