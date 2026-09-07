@@ -1,4 +1,4 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
 .SYNOPSIS
   Produce a self-contained, no-install portable build of Windows Stutter Diagnostic.

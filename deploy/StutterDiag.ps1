@@ -1,6 +1,6 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
-    StutterDiag.ps1 — installe / pilote Windows Stutter Diagnostic sur la machine cible.
+    StutterDiag.ps1 - installe / pilote Windows Stutter Diagnostic sur la machine cible.
 
     Pensé pour être lancé par une personne non technique via Lancer-StutterDiag.bat :
     il s'auto-élève en administrateur, affiche un menu en français, et fait tout
@@ -127,7 +127,7 @@ function GuiExe     { Join-Path $InstallDir 'StutterDiag.Gui.exe' }
 function Invoke-Cli {
     param([string[]]$CliArgs)
     $cli = CliExe
-    if (-not (Test-Path $cli)) { throw "StutterDiag.Cli.exe introuvable — lancez d'abord l'installation (choix 1)." }
+    if (-not (Test-Path $cli)) { throw "StutterDiag.Cli.exe introuvable - lancez d'abord l'installation (choix 1)." }
     & $cli @CliArgs
     return $LASTEXITCODE
 }
@@ -203,7 +203,7 @@ function Open-Gui {
         Start-Process -FilePath 'explorer.exe' -ArgumentList ('"{0}"' -f $gui)
         Info "Interface lancee."
     } else {
-        Warn2 "Interface introuvable — lancez d'abord l'installation."
+        Warn2 "Interface introuvable - lancez d'abord l'installation."
     }
 }
 

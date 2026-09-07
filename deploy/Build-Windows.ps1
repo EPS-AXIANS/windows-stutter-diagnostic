@@ -1,6 +1,6 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
-    Build-Windows.ps1 — compile Windows Stutter Diagnostic sur CE PC, puis (si la
+    Build-Windows.ps1 - compile Windows Stutter Diagnostic sur CE PC, puis (si la
     compilation reussit) fabrique le pack d'installation et installe le service.
 
     Pensé pour être lancé par une personne non technique via Build-Windows.bat :

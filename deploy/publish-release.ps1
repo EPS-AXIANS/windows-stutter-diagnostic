@@ -1,6 +1,6 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 <#
-    publish-release.ps1 — À exécuter par le développeur, sur une machine Windows + .NET 8 SDK,
+    publish-release.ps1 - À exécuter par le développeur, sur une machine Windows + .NET 8 SDK,
     UNE FOIS que la solution compile (voir docs/INTEGRATION-NOTES.md).
 
     Produit  artifacts\StutterDiag-Setup-<version>.zip  : le pack cle-en-main que la
@@ -66,7 +66,7 @@ if ($Release) {
     Write-Host "Lien de telechargement du pack :" -ForegroundColor Green
     & gh release view $Tag --repo $RepoSlug --json assets --jq '.assets[] | select(.name | startswith("StutterDiag-Setup")) | .url'
 } else {
-    Write-Host "== 3/3  (skip release GitHub — relancez avec -Release pour publier) ==" -ForegroundColor DarkGray
+    Write-Host "== 3/3  (skip release GitHub - relancez avec -Release pour publier) ==" -ForegroundColor DarkGray
 }
 
 Write-Host ""
