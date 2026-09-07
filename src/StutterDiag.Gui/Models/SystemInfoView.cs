@@ -60,7 +60,7 @@ public sealed class SystemInfoView
                 Motherboard = Dict(root, "motherboard"),
                 Bios = Dict(root, "bios"),
                 Security = Dict(root, "security"),
-                Drivers = Drivers(root, "drivers"),
+                Drivers = DriverList(root, "drivers"),
                 TpmInferredType = Str(tpm, "inferredType") is { Length: > 0 } t ? t : "Unavailable",
                 TpmInferenceBasis = Str(tpm, "inferenceBasis") is { Length: > 0 } b ? b : "Unavailable",
                 TpmDetails = tpmDetails
@@ -106,7 +106,7 @@ public sealed class SystemInfoView
         return outer;
     }
 
-    private static IReadOnlyList<DriverRow> Drivers(JsonElement root, string name)
+    private static IReadOnlyList<DriverRow> DriverList(JsonElement root, string name)
     {
         var el = GetProp(root, name);
         if (el.ValueKind != JsonValueKind.Array) return Array.Empty<DriverRow>();
