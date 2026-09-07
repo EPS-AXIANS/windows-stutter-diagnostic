@@ -10,7 +10,9 @@
       1. -PackageZip <chemin>              (archive portable explicite)
       2. un dossier "app\" à côté de ce script   <-- cas normal du pack d'installation
       3. un fichier StutterDiag-portable*.zip à côté de ce script
-      4. -PackageUrl <lien>  ou  la dernière release GitHub (repo public, ou 'gh' installé)
+      4. ..\artifacts\ (StutterDiag-Setup\app, ou le zip portable)  <-- cas du dépôt
+         source, quand Build-Windows.bat vient de compiler le pack
+      5. -PackageUrl <lien>  ou  la dernière release GitHub (repo public, ou 'gh' installé)
 
     Aucune donnée n'est envoyée sur Internet par l'application elle-même.
 #>
@@ -104,6 +106,18 @@ function Resolve-App {
     $localZip = Get-ChildItem -Path $ScriptDir -Filter 'StutterDiag-portable*.zip' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($localZip) { return (Expand-ToTemp $localZip.FullName) }
 
+    # Lance depuis le depot source (deploy\), et non depuis le pack d'installation :
+    # Build-Windows.bat vient d'assembler le resultat dans ..\artifacts, pas ici.
+    $artifacts = Join-Path (Split-Path $ScriptDir -Parent) 'artifacts'
+    if (Test-Path $artifacts) {
+        $staged = Join-Path $artifacts 'StutterDiag-Setup\app'
+        if (Test-Path (Join-Path $staged 'StutterDiag.Service.exe')) { return $staged }
+
+        $builtZip = Get-ChildItem -Path $artifacts -Filter 'StutterDiag-portable*.zip' -ErrorAction SilentlyContinue |
+                    Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        if ($builtZip) { return (Expand-ToTemp $builtZip.FullName) }
+    }
+
     $got = $PackageUrl
     if (-not $got) { $got = Resolve-GitHubAsset }
     if ($got) {
@@ -114,8 +128,11 @@ function Resolve-App {
         return (Expand-ToTemp $tmp)
     }
 
-    throw ("Application introuvable. Placez un dossier 'app\' (ou StutterDiag-portable*.zip) " +
-           "a cote de ce script, ou relancez avec -PackageUrl <lien>.")
+    throw ("Application introuvable : elle n'a pas encore ete compilee. " +
+           "Depuis le depot source, lancez d'abord  deploy\Build-Windows.bat  (cela compile " +
+           "l'application et assemble le pack dans artifacts\), puis relancez ce menu. " +
+           "Sinon, placez un dossier 'app\' ou StutterDiag-portable*.zip a cote de ce script, " +
+           "ou relancez avec -PackageUrl <lien>.")
 }
 
 # ----------------------------------------------------------------- exe helpers
