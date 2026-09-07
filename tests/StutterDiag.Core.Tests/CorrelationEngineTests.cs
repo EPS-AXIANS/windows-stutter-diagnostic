@@ -130,4 +130,32 @@ public sealed class CorrelationEngineTests
         window.FromQpc.Should().Be(StutterQpc - Clock.MsToTicks(5000));
         window.ToQpc.Should().Be(StutterQpc + Clock.MsToTicks(5000));
     }
+
+    // The nearest process snapshot is carried through the window untouched: it feeds the
+    // report's "Top processes" line. Every other test leaves FakeDataSource.Snapshot null,
+    // so without this one the non-null branch is never exercised.
+    [Fact]
+    public void The_nearest_process_snapshot_is_carried_into_the_window()
+    {
+        var snapshot = new ProcessSnapshot(
+            StutterQpc, DateTime.UnixEpoch, SnapshotTrigger.AutoStutter,
+            new[]
+            {
+                new ProcessSnapshotRow(4321, "game.exe", 42.0, 1_048_576, 524_288, 10, 20, 8, 40, 3, 1.5, 2.5, false, true),
+            });
+        var src = new FakeDataSource { Snapshot = snapshot };
+
+        var window = NewEngine().Analyze(NewStutter(), src);
+
+        window.Snapshot.Should().BeSameAs(snapshot);
+        window.Snapshot!.Rows.Should().ContainSingle().Which.Name.Should().Be("game.exe");
+    }
+
+    [Fact]
+    public void A_missing_process_snapshot_leaves_the_window_snapshot_null()
+    {
+        var window = NewEngine().Analyze(NewStutter(), new FakeDataSource());
+
+        window.Snapshot.Should().BeNull();
+    }
 }
