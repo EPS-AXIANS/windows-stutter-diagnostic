@@ -35,9 +35,14 @@
         <Directory Id="DOCSFOLDER" Name="docs" />
       </Directory>
     </StandardDirectory>
+<?ifdef HasPayload ?>
+    <!-- Guarded: the only component in this folder is GuiShortcut, and its RemoveFolder is what
+         keeps ICE64 happy. Declaring the folder in the no-payload skeleton build would leave a
+         start-menu directory with no RemoveFile row, which ICE64 rejects. -->
     <StandardDirectory Id="ProgramMenuFolder">
       <Directory Id="ShortcutFolder" Name="Windows Stutter Diagnostic" />
     </StandardDirectory>
+<?endif ?>
 
     <Feature Id="Main" Title="Windows Stutter Diagnostic" Level="1">
 <?ifdef HasPayload ?>
