@@ -129,6 +129,20 @@ public sealed class MonitorOrchestrator : IAsyncDisposable
     /// <summary>One-shot startup work: enforce retention before any session begins.</summary>
     public async Task InitializeAsync(CancellationToken ct)
     {
+        // Close sessions a previous crash left open BEFORE retention runs, otherwise they are
+        // invisible to age-based pruning and can also stall size-based pruning (which only drops
+        // finished sessions). Safe here: no session is running yet — StartAsync comes later.
+        try
+        {
+            int closed = await _store.CloseOpenSessionsAsync(ct).ConfigureAwait(false);
+            if (closed > 0)
+                _log.LogInformation("Closed {Count} session(s) left open by a previous run", closed);
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "closing previously-open sessions failed");
+        }
+
         try
         {
             var result = await _retention.RunAsync(_clock.UtcNow, ct).ConfigureAwait(false);

@@ -273,4 +273,56 @@ public sealed class SqliteEventStoreTests : IAsyncLifetime
         sessions.Should().Contain(s => s.Id == _sessionId, "the still-running session is untouched");
         ScalarCount($"SELECT COUNT(*) FROM events WHERE session_id={oldId};").Should().Be(0);
     }
+
+    [Fact]
+    public async Task An_open_session_survives_pruning_until_it_is_closed()
+    {
+        // A run a previous process crashed out of: old, and still ended_utc NULL.
+        long crashedId = await _store.StartSessionAsync(new MonitoringSession
+        {
+            StartedUtc = DateTime.UtcNow.AddDays(-30),
+            Label = "crashed",
+            TpmTypeInferred = TpmType.Firmware,
+            TpmBasis = "test",
+            Mode = "Standard",
+        }, default);
+
+        // Age-based pruning cannot touch it while it is open -- this is the leak.
+        await _store.PruneSessionsAsync(DateTime.UtcNow.AddDays(-14), default);
+        (await _store.GetSessionsAsync(default)).Should().Contain(s => s.Id == crashedId,
+            "an open session is invisible to retention, so it would accumulate forever");
+
+        int closed = await _store.CloseOpenSessionsAsync(default);
+        closed.Should().BeGreaterThanOrEqualTo(1);
+
+        // Now that it is closed at its start instant, the same prune removes it.
+        await _store.PruneSessionsAsync(DateTime.UtcNow.AddDays(-14), default);
+        (await _store.GetSessionsAsync(default)).Should().NotContain(s => s.Id == crashedId);
+    }
+
+    [Fact]
+    public async Task CloseOpenSessions_stamps_the_end_at_the_start_and_counts_only_open_ones()
+    {
+        // Isolate from the fixture's own open session so the count is deterministic.
+        await _store.CloseOpenSessionsAsync(default);
+
+        var started = DateTime.UtcNow.AddHours(-2);
+        long id = await _store.StartSessionAsync(new MonitoringSession
+        {
+            StartedUtc = started,
+            Label = "crashed",
+            TpmTypeInferred = TpmType.Firmware,
+            TpmBasis = "test",
+            Mode = "Standard",
+        }, default);
+
+        int closed = await _store.CloseOpenSessionsAsync(default);
+        closed.Should().Be(1, "only the one still-open session should be closed");
+
+        var reread = (await _store.GetSessionsAsync(default)).Single(s => s.Id == id);
+        reread.EndedUtc.Should().Be(reread.StartedUtc, "the end is stamped at the start instant");
+
+        // Idempotent: a second pass finds nothing open.
+        (await _store.CloseOpenSessionsAsync(default)).Should().Be(0);
+    }
 }

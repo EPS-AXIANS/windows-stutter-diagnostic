@@ -130,6 +130,23 @@ public sealed class SqliteEventStore : IEventStore
         finally { _writeLock.Release(); }
     }
 
+    public async Task<int> CloseOpenSessionsAsync(CancellationToken ct)
+    {
+        await _writeLock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            await using var cmd = _write!.CreateCommand();
+            // The real end instant is unknowable after a crash, and the activity rows are stamped
+            // in QPC ticks whose epoch resets on reboot, so they cannot be mapped back to a UTC
+            // end. Stamping the end at the (real, stored) start instant is honest about the
+            // unknown duration and lets age-based retention purge the run on schedule.
+            cmd.CommandText = "UPDATE sessions SET ended_utc = started_utc WHERE ended_utc IS NULL; SELECT changes();";
+            var closed = Convert.ToInt32(await cmd.ExecuteScalarAsync(ct).ConfigureAwait(false) ?? 0);
+            return closed;
+        }
+        finally { _writeLock.Release(); }
+    }
+
     // ----------------------------------------------------------------- hot path
 
     public ValueTask AppendEventAsync(MonitorEvent e) { _eventBatcher!.Enqueue(e); return ValueTask.CompletedTask; }
