@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using System.Security.AccessControl;
 using System.Security.Principal;
 using System.ServiceProcess;
 using StutterDiag.Service.Interop;
@@ -119,6 +120,8 @@ public static class ServiceControl
             Console.WriteLine("  LocalSystem already holds every required privilege; skipping LSA / group steps");
         }
 
+        ProvisionDataDirectory(account);
+
         Console.WriteLine($"Done. Start with:  {ServiceName} start   (or: sc start {ServiceName})");
         return 0;
     }
@@ -203,6 +206,46 @@ public static class ServiceControl
     }
 
     // ------------------------------------------------------------------
+
+    [SupportedOSPlatform("windows")]
+    private static void ProvisionDataDirectory(string account)
+    {
+        // A restricted NT SERVICE virtual account is not a member of Users, so it cannot create a
+        // folder under C:\ProgramData on its own. The store's first write would then fail with
+        // access denied, and because a BackgroundService faults the whole host by default, the
+        // service would never reach Running -- the operator only ever sees start error 3, with no
+        // log (the file sink targets the same unwritable folder). Create the data directory now,
+        // while elevated, and grant the service account Modify.
+        //
+        // Path matches AppConfig's default Storage locations (%ProgramData%\StutterDiag and its
+        // \logs). An operator who overrides the config to a different folder must grant the
+        // account Modify there themselves.
+        string root = Environment.ExpandEnvironmentVariables(@"%ProgramData%\StutterDiag");
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(root, "logs")); // creates root as well
+
+            var rule = new FileSystemAccessRule(
+                new NTAccount(account),
+                FileSystemRights.Modify | FileSystemRights.Synchronize,
+                InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit,
+                PropagationFlags.None,
+                AccessControlType.Allow);
+
+            var info = new DirectoryInfo(root);
+            var security = info.GetAccessControl();
+            security.AddAccessRule(rule);
+            info.SetAccessControl(security);
+
+            Console.WriteLine($"  data directory {root} ready; granted Modify to {account}");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine(
+                $"  could not provision the data directory ({ex.Message}). If the service fails to " +
+                $"start, grant {account} Modify on {root} manually.");
+        }
+    }
 
     [SupportedOSPlatform("windows")]
     private static void GrantPrivileges(string account)

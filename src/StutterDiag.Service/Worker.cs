@@ -30,8 +30,23 @@ public sealed class Worker : BackgroundService
     {
         _log.LogInformation("StutterDiag service starting; database {Db}", _config.Storage.DatabasePath);
 
-        await _store.InitializeAsync(stoppingToken).ConfigureAwait(false);
-        await _orchestrator.InitializeAsync(stoppingToken).ConfigureAwait(false);
+        try
+        {
+            await _store.InitializeAsync(stoppingToken).ConfigureAwait(false);
+            await _orchestrator.InitializeAsync(stoppingToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Without this the exception faults the host silently (BackgroundService defaults to
+            // StopHost) and the operator sees only "start error 3". The most common cause is the
+            // service account lacking write access to the data directory; say so, actionably,
+            // before failing. Re-thrown because a collector with no store cannot do its job.
+            _log.LogCritical(ex,
+                "Startup failed initialising storage at {Path}. If this is an access error, ensure the " +
+                "service account has Modify on that folder (reinstalling grants it).",
+                _config.Storage.DatabasePath);
+            throw;
+        }
 
         if (_config.Service.AutoStartMonitoring)
         {
